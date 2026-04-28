@@ -10,19 +10,19 @@ interface BudgetBarProps {
 }
 
 function getState(spent: number, cap: number) {
-  if (cap <= 0) return { color: '#7C3AED', label: 'Cap exceeded', exceeded: true };
+  if (cap <= 0) return { color: '#7C3AED', exceeded: true };
   const pct = spent / cap;
-  if (pct >= 1)    return { color: '#7C3AED', label: 'Cap exceeded', exceeded: true };
-  if (pct >= 0.95) return { color: '#DC2626', label: null, exceeded: false };
-  if (pct >= 0.80) return { color: '#D97706', label: null, exceeded: false };
-  return           { color: '#16A34A', label: null, exceeded: false };
+  if (pct >= 1)    return { color: '#7C3AED', exceeded: true };
+  if (pct >= 0.95) return { color: '#DC2626', exceeded: false };
+  if (pct >= 0.80) return { color: '#D97706', exceeded: false };
+  return           { color: '#16A34A', exceeded: false };
 }
 
 const BudgetBar: React.FC<BudgetBarProps> = ({
   spent, cap, width = '100%', showViewSpend = true, stageBreakdown = [],
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { color, label, exceeded } = getState(spent, cap);
+  const { color, exceeded } = getState(spent, cap);
   const fillPct = Math.min((spent / cap) * 100, 100);
 
   return (
