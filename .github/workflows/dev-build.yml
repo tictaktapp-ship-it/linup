@@ -14,10 +14,10 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 9
 
@@ -46,3 +46,4 @@ jobs:
             src-tauri/target/debug/bundle/msi/*.msi
             src-tauri/target/debug/bundle/nsis/*.exe
           retention-days: 7
+
