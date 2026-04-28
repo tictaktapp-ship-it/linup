@@ -1,5 +1,9 @@
 ﻿name: Dev Build
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+
 on:
   push:
     branches: [ main ]
@@ -46,4 +50,5 @@ jobs:
             src-tauri/target/debug/bundle/msi/*.msi
             src-tauri/target/debug/bundle/nsis/*.exe
           retention-days: 7
+
 
