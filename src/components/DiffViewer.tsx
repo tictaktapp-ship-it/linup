@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DiffFile } from '../types/diff';
+import type { DiffFile } from '../types/diff';
 
 interface DiffViewerProps {
   files: DiffFile[];
