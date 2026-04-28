@@ -16,6 +16,9 @@ pub fn run() {
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::stage::set_stage_status,
+            commands::stage::set_stage_approved,
+            commands::stage::get_stage_model,
             commands::secrets::set_secret,
             commands::secrets::get_secret_masked,
             commands::secrets::delete_secret,
