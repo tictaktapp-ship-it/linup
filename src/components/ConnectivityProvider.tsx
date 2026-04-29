@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ConnectivityContext, ConnectivityContextValue, fetchConnectivityStatus } from '../stores/connectivity';
+import { ConnectivityContext, fetchConnectivityStatus } from '../stores/connectivity';
+import type { ConnectivityContextValue } from '../stores/connectivity';
 
 export function ConnectivityProvider({ children }: { children: React.ReactNode }) {
   const [value, setValue] = useState<ConnectivityContextValue>({ isOnline: true, lastChecked: '' });
