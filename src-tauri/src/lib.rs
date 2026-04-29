@@ -30,10 +30,19 @@ pub fn run() {
                         sql: include_str!("../migrations/004_stop_events.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
+                    tauri_plugin_sql::Migration {
+                        version: 4,
+                        description: "create_idea_intake",
+                        sql: include_str!("../migrations/004_idea_intake.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
                 ])
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::pipeline::stage1_idea_intake::submit_idea_intake,
+            commands::pipeline::stage1_idea_intake::get_idea_intake,
+            commands::pipeline::stage1_idea_intake::save_idea_intake,
             commands::system::get_connectivity_status,
             commands::stop_condition::rollback_to_snapshot,
             commands::stop_condition::export_patch,
