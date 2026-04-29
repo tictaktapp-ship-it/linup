@@ -82,21 +82,57 @@ function Add-CrateDep {
 
 function Get-CodeBlock {
     param([string]$Output, [string]$Language)
-    $pattern = "(?s)``````$Language\s*\r?\n(.*?)\r?\n\s*``````"
-    $match = [regex]::Match($Output, $pattern)
-    if ($match.Success) { return $match.Groups[1].Value.Trim() }
-    $pattern2 = "(?s)``````\s*$Language[^\n]*\r?\n(.*?)\r?\n\s*``````"
-    $match2 = [regex]::Match($Output, $pattern2)
-    if ($match2.Success) { return $match2.Groups[1].Value.Trim() }
-    $pattern3 = "(?s)``````[^\n]*\r?\n(.*?)\r?\n\s*``````"
-    $matches3 = [regex]::Matches($Output, $pattern3)
-    if ($matches3.Count -gt 0) {
-        if ($Language -in @("tsx","typescript","rust","sql")) {
-            return $matches3[$matches3.Count - 1].Groups[1].Value.Trim()
+    # 1. Exact match
+    $m = [regex]::Match($Output, "(?s)``````$Language\s*\r?\n(.*?)\r?\n\s*``````")
+    if ($m.Success) { return $m.Groups[1].Value.Trim() }
+    # 2. Language with trailing chars (e.g. ```rust // comment)
+    $m = [regex]::Match($Output, "(?s)``````\s*$Language[^\n]*\r?\n(.*?)\r?\n\s*``````")
+    if ($m.Success) { return $m.Groups[1].Value.Trim() }
+    # 3. Any fenced block - pick by language signature
+    $all = [regex]::Matches($Output, "(?s)``````[^\n]*\r?\n(.*?)\r?\n\s*``````")
+    foreach ($blk in $all) {
+        $body = $blk.Groups[1].Value.Trim()
+        $hit = switch ($Language) {
+            "rust"       { $body -match "fn |use |pub |impl |struct |enum " }
+            "sql"        { $body -match "CREATE TABLE|ALTER TABLE|INSERT INTO" }
+            "typescript" { $body -match "^import |^export |^interface |^type |^const " }
+            "tsx"        { $body -match "React|return \(|<div|useState|useEffect" }
+            "yaml"       { $body -match "^name:|^on:|^jobs:" }
+            "bash"       { $body -match "#!/|xcrun|notarytool" }
+            "powershell" { $body -match "param\(|Write-Host|signtool" }
+            default      { $false }
         }
-        return $matches3[0].Groups[1].Value.Trim()
+        if ($hit) { return $body }
+    }
+    # 4. No fences at all - scan for language signature in raw output
+    $lines = $Output -split "`n"
+    $start = -1; $end = -1
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $sig = switch ($Language) {
+            "rust"       { $lines[$i] -match "^use |^pub |^fn |^#\[|^struct |^impl " }
+            "sql"        { $lines[$i] -match "^CREATE TABLE|^ALTER TABLE" }
+            "typescript" { $lines[$i] -match "^import |^export |^interface |^const " }
+            "tsx"        { $lines[$i] -match "^import React|^const.*React\.FC" }
+            default      { $false }
+        }
+        if ($sig -and $start -eq -1) { $start = $i }
+        if ($start -ge 0 -and $lines[$i] -match "^\s*$" -and $i -gt $start + 5) { $end = $i; break }
+    }
+    if ($start -ge 0) {
+        $endIdx = if ($end -gt 0) { $end } else { $lines.Count - 1 }
+        return ($lines[$start..$endIdx] -join "`n").Trim()
     }
     return $null
+}
+
+function Assert-FileExists {
+    param([string]$RelPath, [string]$Feature)
+    $abs = Join-Path "E:\linup-io" $RelPath
+    if (-not (Test-Path $abs)) {
+        Write-Host "  MISSING: $RelPath was not saved for $Feature - check output and save manually" -ForegroundColor Red
+        return $false
+    }
+    return $true
 }
 
 $rustDb = "CRITICAL RUST DB PATTERN - follow exactly:" +
