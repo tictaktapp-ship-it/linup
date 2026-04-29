@@ -6,44 +6,25 @@ interface ConnectivityStatus {
   last_checked_at: string;
 }
 
-interface ConnectivityContextValue {
+export interface ConnectivityContextValue {
   isOnline: boolean;
   lastChecked: string;
 }
 
-const ConnectivityContext = createContext<ConnectivityContextValue>({
+export const ConnectivityContext = createContext<ConnectivityContextValue>({
   isOnline: true,
   lastChecked: '',
 });
 
-export function ConnectivityProvider({ children }: { children: React.ReactNode }) {
-  const [isOnline, setIsOnline] = useState(true);
-  const [lastChecked, setLastChecked] = useState('');
-
-  const check = async () => {
-    try {
-      const status = await invoke<ConnectivityStatus>('get_connectivity_status');
-      setIsOnline(status.online);
-      setLastChecked(status.last_checked_at);
-    } catch {
-      setIsOnline(false);
-      setLastChecked(new Date().toISOString());
-    }
-  };
-
-  useEffect(() => {
-    check();
-    const interval = setInterval(check, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <ConnectivityContext.Provider value={{ isOnline, lastChecked }}>
-      {children}
-    </ConnectivityContext.Provider>
-  );
-}
-
 export function useConnectivity() {
   return useContext(ConnectivityContext);
+}
+
+export async function fetchConnectivityStatus(): Promise<ConnectivityContextValue> {
+  try {
+    const status = await invoke<ConnectivityStatus>('get_connectivity_status');
+    return { isOnline: status.online, lastChecked: status.last_checked_at };
+  } catch {
+    return { isOnline: false, lastChecked: new Date().toISOString() };
+  }
 }
