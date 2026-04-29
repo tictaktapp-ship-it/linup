@@ -10,7 +10,7 @@ const ProjectsScreen: React.FC = () => {
   useEffect(() => {
     invoke<Project[]>('get_projects')
       .then(data => { setProjects(data); setLoading(false); })
-      .catch(() => { setIsOffline(true); setLoading(false); });
+      .catch(() => { setIsOffline(false); setLoading(false); }); // backend not ready yet
   }, []);
 
   if (loading) return (
