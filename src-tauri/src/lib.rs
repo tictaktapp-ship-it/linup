@@ -52,6 +52,7 @@ pub fn run() {
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::pipeline::stage8_hardening::run_stage_hardening,
             commands::pipeline::stage7_implementation::get_implementation_batches,
             commands::pipeline::stage7_implementation::run_implementation_batch,
             commands::pipeline::stage6_scaffold::open_project_folder,
