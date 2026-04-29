@@ -46,6 +46,7 @@ pub fn run() {
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::pipeline::stage4_product_spec::run_stage_product_spec,
             commands::pipeline::stage2_clarify::approve_clarify,
             commands::pipeline::stage2_clarify::save_clarify_answers,
             commands::pipeline::stage2_clarify::start_clarify,
