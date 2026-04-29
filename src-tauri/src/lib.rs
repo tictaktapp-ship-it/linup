@@ -42,10 +42,18 @@ pub fn run() {
                         sql: include_str!("../migrations/005_clarify_sessions.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
+                    tauri_plugin_sql::Migration {
+                        version: 5,
+                        description: "create_implementation_batches",
+                        sql: include_str!("../migrations/005_implementation_batches.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
                 ])
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::pipeline::stage7_implementation::get_implementation_batches,
+            commands::pipeline::stage7_implementation::run_implementation_batch,
             commands::pipeline::stage6_scaffold::open_project_folder,
             commands::pipeline::stage6_scaffold::get_scaffold_status,
             commands::pipeline::stage6_scaffold::scaffold_project,
