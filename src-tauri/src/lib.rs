@@ -46,6 +46,9 @@ pub fn run() {
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::pipeline::stage6_scaffold::open_project_folder,
+            commands::pipeline::stage6_scaffold::get_scaffold_status,
+            commands::pipeline::stage6_scaffold::scaffold_project,
             commands::pipeline::stage5_architecture::run_stage_architecture,
             commands::pipeline::stage4_product_spec::run_stage_product_spec,
             commands::pipeline::stage2_clarify::approve_clarify,
