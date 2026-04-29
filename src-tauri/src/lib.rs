@@ -24,10 +24,21 @@ pub fn run() {
                         sql: include_str!("../migrations/002_budget_columns.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
+                    tauri_plugin_sql::Migration {
+                        version: 4,
+                        description: "create_stop_events",
+                        sql: include_str!("../migrations/004_stop_events.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
                 ])
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::stop_condition::rollback_to_snapshot,
+            commands::stop_condition::export_patch,
+            commands::stop_condition::resolve_stop_event,
+            commands::stop_condition::record_stop_event,
+            commands::stop_condition::check_stop_conditions,
             commands::budget::raise_cap,
             commands::budget::check_budget,
             commands::artifacts::assemble_evidence_pack,
