@@ -34,6 +34,7 @@ pub fn run() {
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::system::get_connectivity_status,
             commands::stop_condition::rollback_to_snapshot,
             commands::stop_condition::export_patch,
             commands::stop_condition::resolve_stop_event,
