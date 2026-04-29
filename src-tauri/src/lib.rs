@@ -18,10 +18,18 @@ pub fn run() {
                         sql: include_str!("../migrations/003_artifacts.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
+                    tauri_plugin_sql::Migration {
+                        version: 2,
+                        description: "budget_columns",
+                        sql: include_str!("../migrations/002_budget_columns.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
                 ])
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::budget::raise_cap,
+            commands::budget::check_budget,
             commands::artifacts::assemble_evidence_pack,
             commands::artifacts::verify_artifact,
             commands::artifacts::read_artifact,
