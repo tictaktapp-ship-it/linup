@@ -1,6 +1,5 @@
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
-use sha2::Digest;
 use tauri::Emitter;
 use uuid::Uuid;
 
