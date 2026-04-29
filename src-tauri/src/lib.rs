@@ -60,10 +60,19 @@ pub fn run() {
                         sql: include_str!("../migrations/007_builds.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
+                    tauri_plugin_sql::Migration {
+                        version: 8,
+                        description: "create_deployments",
+                        sql: include_str!("../migrations/008_deployments.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
                 ])
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::pipeline::stage11_deployment::rollback_deploy,
+            commands::pipeline::stage11_deployment::get_deploys,
+            commands::pipeline::stage11_deployment::deploy,
             commands::pipeline::stage10_build::open_build_output,
             commands::pipeline::stage10_build::get_builds,
             commands::pipeline::stage10_build::build_desktop,
