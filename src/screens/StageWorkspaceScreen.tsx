@@ -30,7 +30,7 @@ const StageWorkspaceScreen: React.FC = () => {
   const [budgetSpent, setBudgetSpent] = useState(0);
   const [budgetCap, setBudgetCap] = useState(10);
   const [gatesPassed, setGatesPassed] = useState(0);
-  const [gatesFailed, setGatesFailed] = useState(0);
+  const [gatesFailed] = useState(0);
   const [offline, setOffline] = useState(false);
 
   useEffect(() => {
