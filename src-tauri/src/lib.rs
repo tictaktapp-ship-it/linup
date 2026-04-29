@@ -36,10 +36,19 @@ pub fn run() {
                         sql: include_str!("../migrations/004_idea_intake.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
+                    tauri_plugin_sql::Migration {
+                        version: 5,
+                        description: "create_clarify_sessions",
+                        sql: include_str!("../migrations/005_clarify_sessions.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
                 ])
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::pipeline::stage2_clarify::approve_clarify,
+            commands::pipeline::stage2_clarify::save_clarify_answers,
+            commands::pipeline::stage2_clarify::start_clarify,
             commands::pipeline::stage1_idea_intake::submit_idea_intake,
             commands::pipeline::stage1_idea_intake::get_idea_intake,
             commands::pipeline::stage1_idea_intake::save_idea_intake,
