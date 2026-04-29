@@ -10,7 +10,7 @@ const TOTAL = 6;
 
 const OnboardingFlow: React.FC = () => {
   const [step, setStep] = useState(1);
-  const [data, setData] = useState<Record<string, unknown>>({});
+  const [, setData] = useState<Record<string, unknown>>();
 
   const onNext = (stepData?: Record<string, unknown>) => {
     if (stepData) setData(d => ({ ...d, ...stepData }));
