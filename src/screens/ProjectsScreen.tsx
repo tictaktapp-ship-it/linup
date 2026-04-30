@@ -1,3 +1,4 @@
+import { LOGO_ICON } from '../constants/logos';
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type { Project } from '../types/project';

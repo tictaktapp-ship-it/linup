@@ -1,3 +1,4 @@
+import { LOGO_FULL } from '../../constants/logos';
 import React from 'react';
 
 interface OnboardingStepProps { onNext: () => void; onBack: () => void }
