@@ -1,0 +1,9 @@
+src-tauri/target
+src-tauri/.cargo
+node_modules
+.next
+logo assets
+linup.db
+.linup
+*.log
+*.pdb
