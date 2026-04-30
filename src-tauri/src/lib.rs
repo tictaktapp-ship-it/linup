@@ -88,6 +88,10 @@ pub fn run() {
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::preview::get_preview_status,
+            commands::preview::open_preview_window,
+            commands::preview::stop_preview_server,
+            commands::preview::start_preview_server,
             commands::secrets_wizard::get_wizard_progress,
             commands::secrets_wizard::save_wizard_secret,
             commands::secrets_wizard::validate_secret,
