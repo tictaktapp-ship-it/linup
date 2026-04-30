@@ -1,0 +1,20 @@
+F-061 - Secrets Wizard
+
+Build a manifest-driven secrets wizard for LINUP. Reads secrets.manifest.json from F-014. Guides user through entering, validating, and storing each secret before deployment.
+
+Rust backend - src-tauri/src/commands/secrets_wizard.rs
+Use standard DB pattern (const DB_PATH, fn open_db). Add migration 013.
+SQL: CREATE TABLE IF NOT EXISTS secrets_wizard_progress (id INTEGER PRIMARY KEY AUTOINCREMENT, project_id TEXT NOT NULL, secret_key TEXT NOT NULL, validated INTEGER NOT NULL DEFAULT 0, saved_to_keychain INTEGER NOT NULL DEFAULT 0, skipped INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL);
+
+Commands:
+load_secrets_manifest(project_id, app_handle) - Read secrets.manifest.json from artifacts table. Parse into Vec<SecretEntry> fields key label description provider setup_url required group. Attach progress status. Return list.
+validate_secret(key, value) - Async reqwest. ANTHROPIC prefix GET api.anthropic.com/v1/models x-api-key ok if 200. OPENAI prefix GET api.openai.com/v1/models Bearer ok if 200. SUPABASE_URL starts https ends .supabase.co. STRIPE_SECRET starts sk_live_ or sk_test_. VERCEL length over 20. Default non-empty. Return ValidationResult valid bool message String.
+save_wizard_secret(project_id, key, value) - keyring v3 service linup-{project_id} username key. Upsert progress validated=1 saved_to_keychain=1 updated_at=now.
+get_wizard_progress(project_id) - Return WizardProgress total i64 validated i64 required_complete bool all_complete bool.
+
+React - src/screens/SecretsWizardScreen.tsx
+One secret per screen: group heading, label bold, description, setup_url link via Tauri shell, masked input with toggle, Test button validate_secret green tick or red error, Save and continue after validation save_wizard_secret then advance, Skip for non-required, progress bar X of Y.
+Completion screen: All required secrets saved. Button Back to pipeline.
+
+Wiring: All four commands in lib.rs generate_handler. pub mod secrets_wizard in mod.rs. Migration 013 version 13 in lib.rs.
+Output: src-tauri/src/commands/secrets_wizard.rs, src/screens/SecretsWizardScreen.tsx, mod.rs, lib.rs, src-tauri/migrations/013_secrets_wizard.sql

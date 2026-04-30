@@ -78,10 +78,20 @@ pub fn run() {
                         sql: include_str!("../migrations/010_audit_trail.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
+                    tauri_plugin_sql::Migration {
+                        version: 13,
+                        description: "create_secrets_wizard",
+                        sql: include_str!("../migrations/013_secrets_wizard.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
                 ])
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::secrets_wizard::get_wizard_progress,
+            commands::secrets_wizard::save_wizard_secret,
+            commands::secrets_wizard::validate_secret,
+            commands::secrets_wizard::load_secrets_manifest,
             commands::pipeline::stage13_release_notes::record_stage_approval,
             commands::pipeline::stage13_release_notes::export_audit_trail,
             commands::pipeline::stage13_release_notes::get_audit_trail,

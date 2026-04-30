@@ -5,3 +5,4 @@ pub mod budget;
 pub mod stop_condition;
 pub mod system;
 pub mod pipeline;
+pub mod secrets_wizard;

@@ -254,6 +254,10 @@ function linup-code {
     $featureKey = $Feature.ToUpper()
 
     if (-not $prompts.ContainsKey($featureKey)) {
+        $pf = "E:\linup-io\prompts\$featureKey.txt"
+        if (Test-Path $pf) { $prompts[$featureKey] = [System.IO.File]::ReadAllText($pf) }
+    }
+    if (-not $prompts.ContainsKey($featureKey)) {
         Write-Host "X No prompt for: $Feature" -ForegroundColor Red
         Write-Host "  Available: $($prompts.Keys -join ', ')" -ForegroundColor Yellow
         return
