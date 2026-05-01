@@ -28,7 +28,7 @@ export default function Step5({ onNext, onBack }: Props) {
         <button onClick={onBack} style={{ flex: 1, padding: '10px', borderRadius: 8, border: '0.5px solid var(--color-border-tertiary)', background: 'transparent', cursor: 'pointer', fontSize: 14 }}>
           &larr; Back
         </button>
-        <button onClick={onNext} style={{ flex: 2, padding: '10px', borderRadius: 8, border: 'none', background: 'var(--color-accent-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
+        <button onClick={() => onNext()} style={{ flex: 2, padding: '10px', borderRadius: 8, border: 'none', background: 'var(--color-accent-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 14 }}>
           Run Stage 1 &rarr;
         </button>
       </div>

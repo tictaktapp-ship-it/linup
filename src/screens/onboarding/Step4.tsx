@@ -23,7 +23,7 @@ export default function Step4({ onNext, onBack }: Props) {
         <button onClick={onBack} style={{ padding: '8px 20px', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 6, background: 'transparent', cursor: 'pointer', fontSize: 14 }}>
           &larr; Back
         </button>
-        <button onClick={onNext} style={{ padding: '8px 24px', background: 'var(--color-accent-primary)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
+        <button onClick={() => onNext()} style={{ padding: '8px 24px', background: 'var(--color-accent-primary)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
           Continue &rarr;
         </button>
       </div>
