@@ -41,7 +41,7 @@ const OnboardingFlow: React.FC = () => {
       </div>
 
       {/* Step content */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         {step === 1 && <Step1 onNext={onNext} onBack={onBack} />}
         {step === 2 && <Step2 onNext={onNext} onBack={onBack} />}
         {step === 3 && <Step3 onNext={onNext} onBack={onBack} />}

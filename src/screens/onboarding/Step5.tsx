@@ -5,7 +5,7 @@ interface Props {
 
 export default function Step5({ onNext, onBack }: Props) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '48px 32px', maxWidth: 520, margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '40px 32px', maxWidth: 520, margin: '40px auto 0', width: '100%' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 8 }}>
           Ready to run Stage 1
@@ -15,7 +15,7 @@ export default function Step5({ onNext, onBack }: Props) {
           This typically takes 2-4 minutes.
         </div>
       </div>
-      <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: 8, padding: 20, fontSize: 13, width: '100%' }}>
+      <div style={{ background: '#F0F9FF', border: '1px solid #BAE6FD', borderRadius: 8, padding: 20, fontSize: 13 }}>
         <strong style={{ display: 'block', marginBottom: 10 }}>What happens next:</strong>
         <ul style={{ margin: 0, paddingLeft: 20, lineHeight: 1.9, color: 'var(--color-text-secondary)' }}>
           <li>AI generates a product specification from your idea</li>
@@ -24,7 +24,7 @@ export default function Step5({ onNext, onBack }: Props) {
           <li>You review and approve before anything is built</li>
         </ul>
       </div>
-      <div style={{ display: 'flex', gap: 12, width: '100%' }}>
+      <div style={{ display: 'flex', gap: 12 }}>
         <button onClick={onBack} style={{ flex: 1, padding: '10px', borderRadius: 8, border: '0.5px solid var(--color-border-tertiary)', background: 'transparent', cursor: 'pointer', fontSize: 14 }}>
           &larr; Back
         </button>

@@ -5,7 +5,7 @@ interface Props {
 
 export default function Step4({ onNext, onBack }: Props) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '48px 32px', maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '40px 32px', maxWidth: 480, margin: '40px auto 0' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>
           AI powered by LINUP
@@ -15,15 +15,15 @@ export default function Step4({ onNext, onBack }: Props) {
           No API keys needed &mdash; everything is handled for you.
         </div>
         <div style={{ fontSize: 13, color: 'var(--color-text-tertiary)', lineHeight: 1.6 }}>
-          Want to use your own Anthropic API key? You can configure this later in
+          Want to use your own Anthropic API key? Configure this in
           Settings &rarr; Advanced.
         </div>
       </div>
-      <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-        <button onClick={onBack} style={{ padding: '8px 20px', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 6, background: 'transparent', cursor: 'pointer', fontSize: 14 }}>
+      <div style={{ display: 'flex', gap: 12, marginTop: 16, width: '100%', maxWidth: 380 }}>
+        <button onClick={onBack} style={{ flex: 1, padding: '10px', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 6, background: 'transparent', cursor: 'pointer', fontSize: 14 }}>
           &larr; Back
         </button>
-        <button onClick={() => onNext()} style={{ padding: '8px 24px', background: 'var(--color-accent-primary)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
+        <button onClick={() => onNext()} style={{ flex: 2, padding: '10px', background: 'var(--color-accent-primary)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
           Continue &rarr;
         </button>
       </div>
