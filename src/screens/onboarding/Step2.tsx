@@ -1,3 +1,4 @@
+import { open } from '@tauri-apps/plugin-dialog';
 import React, { useState } from 'react';
 
 interface OnboardingStepProps {
@@ -153,7 +154,7 @@ const Step2: React.FC<OnboardingStepProps> = ({ onNext, onBack }) => {
 
       <label style={{ fontSize: 13, fontWeight: 500, display: 'flex', flexDirection: 'column', gap: 4 }}>
         Project folder <span style={{ color: '#DC2626', fontSize: 11 }}>required</span>
-        <input style={inp()} placeholder="C:\Projects\my-app" value={folder} onChange={e => setFolder(e.target.value)} />
+        <div style={{ display: "flex", gap: 8 }}><input style={inp()} placeholder="C:\Projects\my-app" value={folder} onChange={e =><button type="button" onClick={async () => { const selected = await open({ directory: true, multiple: false }); if (selected) setFolderPath(selected as string); }} style={{ padding: "6px 14px", border: "0.5px solid var(--color-border-tertiary)", borderRadius: 6, background: "transparent", cursor: "pointer", fontSize: 13, whiteSpace: "nowrap" }}>Browse...</button></div> setFolder(e.target.value)} />
         <span style={{ fontSize: 11, color: '#6B6B66' }}>LINUP will create your app files here.</span>
       </label>
 

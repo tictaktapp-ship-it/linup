@@ -1,43 +1,32 @@
-import React, { useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+interface Props {
+  onNext: () => void;
+  onBack: () => void;
+}
 
-interface OnboardingStepProps { onNext: (data?: Record<string, unknown>) => void; onBack: () => void }
-
-const Step4: React.FC<OnboardingStepProps> = ({ onNext, onBack }) => {
-  const [apiKey, setApiKey] = useState('');
-  const [testing, setTesting] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleConnect = async () => {
-    setTesting(true); setError('');
-    try {
-      await invoke('set_secret', { key: 'anthropic', value: apiKey });
-      onNext();
-    } catch (e) {
-      setError(String(e));
-    } finally {
-      setTesting(false);
-    }
-  };
-
+export default function Step4({ onNext, onBack }: Props) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 480, margin: '0 auto', width: '100%' }}>
-      <h2 style={{ margin: 0 }}>Connect Anthropic</h2>
-      <p style={{ color: '#6B6B66', margin: 0, fontSize: 14 }}>Your API key is stored securely in your OS keychain and never leaves your machine.</p>
-      <label style={{ fontSize: 13, fontWeight: 500 }}>Anthropic API Key
-        <input type="password" style={{ width: '100%', padding: '8px 12px', borderRadius: 6, border: '1px solid #E4E4E0', fontSize: 14, marginTop: 4, boxSizing: 'border-box' }}
-          value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="sk-ant-..." />
-      </label>
-      {error && <p style={{ color: '#DC2626', fontSize: 13, margin: 0 }}>{error}</p>}
-      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <button onClick={onBack} style={{ flex: 1, padding: '10px', borderRadius: 8, border: '1px solid #E4E4E0', background: '#fff', cursor: 'pointer' }}>← Back</button>
-        <button onClick={handleConnect} disabled={!apiKey || testing}
-          style={{ flex: 2, padding: '10px', borderRadius: 8, border: 'none', background: !apiKey || testing ? '#E4E4E0' : '#1D4ED8', color: !apiKey || testing ? '#9B9B96' : '#fff', fontWeight: 600, cursor: !apiKey || testing ? 'not-allowed' : 'pointer' }}>
-          {testing ? 'Saving...' : 'Connect →'}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24, padding: '48px 32px', maxWidth: 480, margin: '0 auto' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>
+          AI powered by LINUP
+        </div>
+        <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>
+          LINUP includes full AI processing as part of your subscription.
+          No API keys needed \u2014 everything is handled for you.
+        </div>
+        <div style={{ marginTop: 16, fontSize: 13, color: 'var(--color-text-tertiary)', lineHeight: 1.6 }}>
+          Want to use your own Anthropic API key? You can configure this later in
+          Settings \u2192 Advanced.
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+        <button onClick={onBack} style={{ padding: '8px 20px', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 6, background: 'transparent', cursor: 'pointer', fontSize: 14 }}>
+          \u2190 Back
+        </button>
+        <button onClick={onNext} style={{ padding: '8px 24px', background: 'var(--color-accent-primary)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
+          Continue \u2192
         </button>
       </div>
     </div>
   );
-};
-
-export default Step4;
+}

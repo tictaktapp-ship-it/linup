@@ -1,3 +1,4 @@
+import { LOGO_ICON } from '../constants/logos';
 import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type { Project } from '../types/project';
@@ -32,7 +33,7 @@ const ProjectsScreen: React.FC = () => {
 
   if (!projects.length) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
-      <div style={{ fontSize: 48 }}>🚀</div>
+      <div style={{ fontSize: 48 }}></div>
       <h2 style={{ margin: 0 }}>No projects yet</h2>
       <p style={{ color: '#6B6B66', margin: 0 }}>Turn your idea into a production app in 11 stages.</p>
       <button

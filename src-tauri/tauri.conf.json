@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "linup-io",
+  "productName": "LINUP",
   "version": "0.1.0",
   "identifier": "io.linup.app",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "linup-io",
+        "title": "LINUP",
         "width": 800,
         "height": 600,
         "resizable": true,
