@@ -5,7 +5,7 @@ interface Props {
 
 export default function Step4({ onNext, onBack }: Props) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '40px 32px', maxWidth: 480, margin: '40px auto 0' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, padding: '40px 32px', maxWidth: 480, margin: '24px auto 0' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>
           AI powered by LINUP

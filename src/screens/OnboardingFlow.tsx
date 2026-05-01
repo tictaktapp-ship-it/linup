@@ -21,27 +21,26 @@ const OnboardingFlow: React.FC = () => {
   const onBack = () => setStep(s => Math.max(1, s - 1));
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: 32 }}>
-      {/* Progress */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40 }}>
-        {Array.from({ length: TOTAL }, (_, i) => (
-          <React.Fragment key={i}>
-            <div style={{
-              width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 12, fontWeight: 600,
-              background: i + 1 < step ? '#16A34A' : i + 1 === step ? '#1D4ED8' : '#E4E4E0',
-              color: i + 1 <= step ? '#fff' : '#9B9B96',
-            }}>
-              {i + 1 < step ? '✓' : i + 1}
-            </div>
-            {i < TOTAL - 1 && <div style={{ flex: 1, height: 2, background: i + 1 < step ? '#16A34A' : '#E4E4E0' }} />}
-          </React.Fragment>
-        ))}
-        <span style={{ marginLeft: 8, fontSize: 13, color: '#6B6B66' }}>Step {step} of {TOTAL}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ padding: '20px 32px 0', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+          {Array.from({ length: TOTAL }, (_, i) => (
+            <React.Fragment key={i}>
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, fontWeight: 600, flexShrink: 0,
+                background: i + 1 < step ? '#16A34A' : i + 1 === step ? '#1D4ED8' : '#E4E4E0',
+                color: i + 1 <= step ? '#fff' : '#9B9B96',
+              }}>
+                {i + 1 < step ? '✓' : i + 1}
+              </div>
+              {i < TOTAL - 1 && <div style={{ flex: 1, height: 2, background: i + 1 < step ? '#16A34A' : '#E4E4E0' }} />}
+            </React.Fragment>
+          ))}
+          <span style={{ marginLeft: 8, fontSize: 13, color: '#6B6B66', flexShrink: 0 }}>Step {step} of {TOTAL}</span>
+        </div>
       </div>
-
-      {/* Step content */}
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 32px 32px' }}>
         {step === 1 && <Step1 onNext={onNext} onBack={onBack} />}
         {step === 2 && <Step2 onNext={onNext} onBack={onBack} />}
         {step === 3 && <Step3 onNext={onNext} onBack={onBack} />}

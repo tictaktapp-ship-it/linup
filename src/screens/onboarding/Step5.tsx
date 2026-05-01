@@ -5,7 +5,7 @@ interface Props {
 
 export default function Step5({ onNext, onBack }: Props) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '40px 32px', maxWidth: 520, margin: '40px auto 0', width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '40px 32px', maxWidth: 520, margin: '24px auto 0', width: '100%' }}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 8 }}>
           Ready to run Stage 1
