@@ -109,3 +109,32 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* LINUP Brand Design Tokens */
+:root {
+  --color-accent-primary: #1D4ED8;
+  --color-accent-hover: #1E40AF;
+  --color-bg-primary: #F9F9F8;
+  --color-bg-secondary: #F3F3F1;
+  --color-bg-danger: #DC2626;
+  --color-text-primary: #1A1A18;
+  --color-text-secondary: #6B6B66;
+  --color-text-tertiary: #9B9B94;
+  --color-text-danger: #DC2626;
+  --color-text-success: #16A34A;
+  --color-border-primary: #E4E4E0;
+  --color-border-tertiary: #E4E4E0;
+  --color-border-focus: #1D4ED8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 0;
+}
