@@ -10,21 +10,21 @@ export default function Step4({ onNext, onBack }: Props) {
         <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 12 }}>
           AI powered by LINUP
         </div>
-        <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>
+        <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: 12 }}>
           LINUP includes full AI processing as part of your subscription.
-          No API keys needed \u2014 everything is handled for you.
+          No API keys needed &mdash; everything is handled for you.
         </div>
-        <div style={{ marginTop: 16, fontSize: 13, color: 'var(--color-text-tertiary)', lineHeight: 1.6 }}>
+        <div style={{ fontSize: 13, color: 'var(--color-text-tertiary)', lineHeight: 1.6 }}>
           Want to use your own Anthropic API key? You can configure this later in
-          Settings \u2192 Advanced.
+          Settings &rarr; Advanced.
         </div>
       </div>
       <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
         <button onClick={onBack} style={{ padding: '8px 20px', border: '0.5px solid var(--color-border-tertiary)', borderRadius: 6, background: 'transparent', cursor: 'pointer', fontSize: 14 }}>
-          \u2190 Back
+          &larr; Back
         </button>
         <button onClick={onNext} style={{ padding: '8px 24px', background: 'var(--color-accent-primary)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 500 }}>
-          Continue \u2192
+          Continue &rarr;
         </button>
       </div>
     </div>
