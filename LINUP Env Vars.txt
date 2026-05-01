@@ -20,4 +20,4 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 DATABASE_URL=postgresql://postgres:3u4n-P4ll15t3r@db.qspqtckbtnemayrseyjg.supabase.co:5432/postgres
 
 # Resend 
-API=re_6pqKdvdV_MjajpUW4KJDMRrTEwpSQ9cHj
+RESEND_API_KEY=re_6pqKdvdV_MjajpUW4KJDMRrTEwpSQ9cHj
