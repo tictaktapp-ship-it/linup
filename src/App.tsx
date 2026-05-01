@@ -4,6 +4,7 @@ import OnboardingFlow from './screens/OnboardingFlow';
 import StageWorkspaceScreen from './screens/StageWorkspaceScreen';
 import AnalyticsDashboardScreen from './screens/AnalyticsDashboardScreen';
 import SecretsWizardScreen from './screens/SecretsWizardScreen';
+import UpdatesScreen from './screens/UpdatesScreen';
 import MaintenanceScreen from './screens/MaintenanceScreen';
 
 function AnalyticsRoute() {
@@ -30,6 +31,7 @@ function App() {
         <Route path='/project/:projectId/stage/:stageIndex' element={<StageWorkspaceScreen />} />
         <Route path='/project/:projectId/analytics' element={<AnalyticsRoute />} />
         <Route path='/project/:projectId/secrets' element={<SecretsRoute />} />
+        <Route path='/settings/updates' element={<UpdatesScreen />} />
         <Route path='/project/:projectId/maintenance' element={<MaintenanceRoute />} />
       </Routes>
     </HashRouter>

@@ -96,10 +96,21 @@ pub fn run() {
                         sql: include_str!("../migrations/012_mec.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
+                    tauri_plugin_sql::Migration {
+                        version: 11,
+                        description: "create_update_history",
+                        sql: include_str!("../migrations/011_update_history.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
                 ])
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::updater::get_update_history,
+            commands::updater::set_update_channel,
+            commands::updater::get_update_channel,
+            commands::updater::get_current_version,
+            commands::updater::check_for_update,
             commands::mec::get_experiment_results,
             commands::mec::create_experiment,
             commands::mec::get_mec_summary,
