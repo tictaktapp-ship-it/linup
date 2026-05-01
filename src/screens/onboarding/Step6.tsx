@@ -3,11 +3,11 @@ import { invoke } from '@tauri-apps/api/core';
 
 interface Props {
   projectId: string;
-  onApprove: (stepData?: Record<string, unknown>) => void;
+  onNext: (stepData?: Record<string, unknown>) => void;
   onBack: () => void;
 }
 
-export default function Step6({ projectId, onApprove, onBack }: Props) {
+export default function Step6({ projectId, onNext, onBack }: Props) {
   const [spec, setSpec] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +50,7 @@ export default function Step6({ projectId, onApprove, onBack }: Props) {
           &larr; Back
         </button>
         <button
-          onClick={() => onApprove()}
+          onClick={() => onNext()}
           disabled={loading || !spec || spec.includes('Please run Stage 1')}
           style={{ flex: 1, padding: '10px 24px', background: loading ? '#ccc' : '#16A34A', color: '#fff', border: 'none', borderRadius: 6, cursor: loading ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 500 }}
         >
