@@ -1,4 +1,5 @@
 import { open } from '@tauri-apps/plugin-dialog';
+
 import React, { useState } from 'react';
 
 interface OnboardingStepProps {

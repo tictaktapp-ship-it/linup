@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import Step1 from './onboarding/Step1';
 import Step2 from './onboarding/Step2';
 import Step3 from './onboarding/Step3';
@@ -10,12 +11,35 @@ const TOTAL = 6;
 
 const OnboardingFlow: React.FC = () => {
   const [step, setStep] = useState(1);
-  const [, setData] = useState<Record<string, unknown>>();
+  const [data, setData] = useState<Record<string, unknown>>({});
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onNext = (stepData?: Record<string, unknown>) => {
-    if (stepData) setData(d => ({ ...d, ...stepData }));
-    if (step < TOTAL) setStep(s => s + 1);
-    else window.location.hash = '/';
+  const onNext = async (stepData?: Record<string, unknown>) => {
+    const merged = { ...data, ...stepData };
+    if (stepData) setData(merged);
+
+    if (step < TOTAL) {
+      setStep(s => s + 1);
+      return;
+    }
+
+    // Final step — save project to DB then navigate to stage workspace
+    setSaving(true);
+    setError(null);
+    try {
+      const projectId = await invoke<string>('create_project', {
+        name: (merged.name as string) || 'My App',
+        description: (merged.description as string) || '',
+        folderPath: (merged.folder as string) || 'C:\\Projects\\my-app',
+        stack: (merged.stack as string) || 'web',
+        budgetCap: (merged.budgetCap as number) || 10.0,
+      });
+      window.location.hash = '/project/' + projectId + '/stage/0';
+    } catch (e) {
+      setError('Failed to create project: ' + String(e));
+      setSaving(false);
+    }
   };
 
   const onBack = () => setStep(s => Math.max(1, s - 1));
@@ -32,7 +56,7 @@ const OnboardingFlow: React.FC = () => {
                 background: i + 1 < step ? '#16A34A' : i + 1 === step ? '#1D4ED8' : '#E4E4E0',
                 color: i + 1 <= step ? '#fff' : '#9B9B96',
               }}>
-                {i + 1 < step ? '✓' : i + 1}
+                {i + 1 < step ? String.fromCharCode(10003) : i + 1}
               </div>
               {i < TOTAL - 1 && <div style={{ flex: 1, height: 2, background: i + 1 < step ? '#16A34A' : '#E4E4E0' }} />}
             </React.Fragment>
@@ -41,6 +65,8 @@ const OnboardingFlow: React.FC = () => {
         </div>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 32px 32px' }}>
+        {error && <div style={{ color: '#DC2626', fontSize: 13, marginBottom: 12, textAlign: 'center' }}>{error}</div>}
+        {saving && <div style={{ color: '#6B6B66', fontSize: 13, marginBottom: 12, textAlign: 'center' }}>Creating your project...</div>}
         {step === 1 && <Step1 onNext={onNext} onBack={onBack} />}
         {step === 2 && <Step2 onNext={onNext} onBack={onBack} />}
         {step === 3 && <Step3 onNext={onNext} onBack={onBack} />}
