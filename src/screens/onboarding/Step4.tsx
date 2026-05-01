@@ -1,5 +1,5 @@
 interface Props {
-  onNext: () => void;
+  onNext: (stepData?: Record<string, unknown>) => void;
   onBack: () => void;
 }
 
