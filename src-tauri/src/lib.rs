@@ -84,10 +84,19 @@ pub fn run() {
                         sql: include_str!("../migrations/013_secrets_wizard.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
+                    tauri_plugin_sql::Migration {
+                        version: 14,
+                        description: "create_maintenance",
+                        sql: include_str!("../migrations/014_maintenance.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
                 ])
                 .build()
         )
         .invoke_handler(tauri::generate_handler![
+            commands::maintenance::apply_maintenance_patch,
+            commands::maintenance::get_maintenance_history,
+            commands::maintenance::run_maintenance_check,
             commands::preview::get_preview_status,
             commands::preview::open_preview_window,
             commands::preview::stop_preview_server,

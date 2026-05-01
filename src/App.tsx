@@ -1,18 +1,1 @@
-import { HashRouter, Routes, Route } from 'react-router-dom';
-import ProjectsScreen from './screens/ProjectsScreen';
-import OnboardingFlow from './screens/OnboardingFlow';
-import StageWorkspaceScreen from './screens/StageWorkspaceScreen';
-
-function App() {
-  return (
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<ProjectsScreen />} />
-        <Route path="/onboarding" element={<OnboardingFlow />} />
-        <Route path="/project/:projectId/stage/:stageIndex" element={<StageWorkspaceScreen />} />
-      </Routes>
-    </HashRouter>
-  );
-}
-
-export default App;
+```tsx import { HashRouter, Routes, Route } from 'react-router-dom'; import ProjectsScreen from './screens/ProjectsScreen'; import OnboardingFlow from './screens/OnboardingFlow'; import StageWorkspaceScreen from './screens/StageWorkspaceScreen'; import AnalyticsDashboardScreen from './screens/AnalyticsDashboardScreen'; import SecretsWizardScreen from './screens/SecretsWizardScreen'; import { useParams } from 'react-router-dom';  function App() {   return (     <HashRouter>       <Routes>         <Route path="/" element={<ProjectsScreen />} />         <Route path="/onboarding" element={<OnboardingFlow />} />         <Route path="/project/:projectId/stage/:stageIndex" element={<Stage[15D[K element={<StageWorkspaceScreen />} />         <Route path="/project/:projectId/analytics" element={<AnalyticsDash[23D[K element={<AnalyticsDashboardScreen projectId={useParams().projectId ?? ''} [K />} />         <Route path="/project/:projectId/secrets" element={<SecretsWizardSc[25D[K element={<SecretsWizardScreen projectId={useParams().projectId ?? ''} />} /[1D[K />       </Routes>     </HashRouter>   ); }  export default App; ``` 

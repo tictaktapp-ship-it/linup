@@ -7,3 +7,4 @@ pub mod system;
 pub mod pipeline;
 pub mod secrets_wizard;
 pub mod preview;
+pub mod maintenance;
