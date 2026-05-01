@@ -1,3 +1,4 @@
+import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
@@ -39,6 +40,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
+    // Handle deep link auth callback (magic link click)
+    onOpenUrl(urls => {
+      const url = urls[0];
+      if (url?.includes('access_token') || url?.includes('code=')) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) fetchUser(session.user.id, session.user.email ?? '');
+        });
+      }
+    }).catch(() => {});
     return () => subscription.unsubscribe();
   }, []);
 
