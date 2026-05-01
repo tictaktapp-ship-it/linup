@@ -10,7 +10,7 @@ export default function AuthScreen() {
   const [agreed, setAgreed] = useState(false);
 
   const handleSend = async () => {
-    if (!agreed) { setError('Please accept the Terms \u0026 Conditions to continue.'); return; }
+    if (!agreed) { setError('Please accept the Terms & Conditions to continue.'); return; }
     if (!email || !email.includes('@')) { setError('Please enter a valid email address.'); return; }
     setLoading(true); setError(null);
     const { error: err } = await supabase.auth.signInWithOtp({
@@ -26,16 +26,16 @@ export default function AuthScreen() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--color-bg-primary)', padding: 32 }}>
         <div style={{ maxWidth: 400, width: '100%', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
           <img src={LOGO_WORDMARK} alt='LINUP' style={{ height: 24, marginBottom: 8 }} />
-          <div style={{ fontSize: 32 }}>&#9993;</div>
+          <div style={{ fontSize: 40 }}>&#9993;</div>
           <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--color-text-primary)' }}>Check your email</div>
           <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>
             We sent a sign-in link to <strong>{email}</strong>.
-            Click the link and you will be brought straight back into LINUP.
+            Click it and you will be taken straight back into LINUP &mdash; no further steps needed.
           </div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 4 }}>
-            The link expires in 1 hour. Check your spam folder if you do not see it.
+          <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>
+            Link expires in 1 hour. Check your spam folder if you do not see it.
           </div>
-          <button onClick={() => setSent(false)} style={{ background: 'transparent', border: 'none', color: 'var(--color-accent-primary)', cursor: 'pointer', fontSize: 13, marginTop: 8 }}>
+          <button onClick={() => setSent(false)} style={{ background: 'transparent', border: 'none', color: 'var(--color-accent-primary)', cursor: 'pointer', fontSize: 13 }}>
             Use a different email
           </button>
         </div>
@@ -46,6 +46,7 @@ export default function AuthScreen() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--color-bg-primary)', padding: 32 }}>
       <div style={{ maxWidth: 400, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 28 }}>
+
         <img src={LOGO_WORDMARK} alt='LINUP' style={{ height: 24 }} />
 
         <div style={{ textAlign: 'center' }}>
@@ -54,7 +55,6 @@ export default function AuthScreen() {
           </div>
           <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>
             Enter your email and we will send you a sign-in link.
-            No password. No credit card. Free to use.
           </div>
         </div>
 
@@ -72,7 +72,7 @@ export default function AuthScreen() {
             <input type='checkbox' checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, flexShrink: 0 }} />
             <span>
               I agree to the{' '}
-              <a href='https://linup.io/terms' target='_blank' rel='noopener noreferrer' style={{ color: 'var(--color-accent-primary)' }}>Terms \u0026 Conditions</a>
+              <a href='https://linup.io/terms' target='_blank' rel='noopener noreferrer' style={{ color: 'var(--color-accent-primary)' }}>Terms & Conditions</a>
               {' '}and{' '}
               <a href='https://linup.io/privacy' target='_blank' rel='noopener noreferrer' style={{ color: 'var(--color-accent-primary)' }}>Privacy Policy</a>
             </span>
@@ -85,12 +85,13 @@ export default function AuthScreen() {
           </button>
         </div>
 
-        <div style={{ width: '100%', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8, padding: '14px 16px' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: '#16A34A', marginBottom: 4 }}>&#10003; Free to use</div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-            Build your first app completely free. No credit card required to sign up or build.
-            You only need a payment method if you choose to export and download your finished app,
-            or when you are ready to start your second project.
+        <div style={{ width: '100%', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: 8, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#16A34A' }}>&#10003; Completely free to build</div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>
+            Sign up and build your first app at no cost. No credit card required to get started.
+            Your first app export is also free. A payment method is only requested at the point of
+            export &mdash; purely to verify your identity and prevent abuse, not to charge you.
+            You only pay if you choose to start a second project or upgrade your plan.
           </div>
         </div>
 
