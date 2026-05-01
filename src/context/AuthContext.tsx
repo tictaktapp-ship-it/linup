@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState }
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import type { LinupUser } from '../lib/supabase';
