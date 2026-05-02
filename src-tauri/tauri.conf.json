@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "LINUP",
-        "width": 800,
-        "height": 600,
+        "width": 1024,
+        "height": 768,
         "resizable": true,
         "fullscreen": false
       }
@@ -23,8 +23,12 @@
       "csp": null
     }
   },
-    "plugins": {
-    "deep-link": { "schemes": ["linup"] },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["linup"]
+      }
+    },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM2NzlDNzc5OTU4OUM1QTkKUldTcHhZbVZlY2Q1eG52clR6QmNKZ2tGVzZtMXg0Q0YzUWpWQ3hjcmIzY2NYNVR3cUdmc1d3b1IK",
       "endpoints": ["https://linup.io/updates/{{target}}/{{arch}}/{{current_version}}"]
