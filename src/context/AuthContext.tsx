@@ -39,6 +39,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   };
 
+  const handleAuthUrl = async (url: string) => {
+    console.log('Auth URL received:', url);
+    try {
+      // Parse all possible parameter locations
+      const urlObj = new URL(url);
+      const params = urlObj.searchParams;
+      // Also check hash fragment
+      const hash = urlObj.hash.startsWith('#') ? urlObj.hash.substring(1) : urlObj.hash;
+      const hashParams = new URLSearchParams(hash);
+
+      // Priority 1: PKCE code (most common in Supabase v2)
+      const code = params.get('code') || hashParams.get('code');
+      if (code) {
+        console.log('Exchanging PKCE code...');
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) console.error('Code exchange error:', error.message);
+        return;
+      }
+
+      // Priority 2: token_hash (Supabase v2 OTP/magic link)
+      const tokenHash = params.get('token_hash') || hashParams.get('token_hash');
+      const type = (params.get('type') || hashParams.get('type') || 'magiclink') as 'signup' | 'magiclink' | 'recovery' | 'invite';
+      if (tokenHash) {
+        console.log('Verifying token hash, type:', type);
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type,
+        });
+        if (error) console.error('Token hash verify error:', error.message);
+        return;
+      }
+
+      // Priority 3: Legacy token + email
+      const token = params.get('token') || hashParams.get('token');
+      const email = params.get('email') || hashParams.get('email') || '';
+      if (token) {
+        console.log('Verifying OTP token...');
+        const { error } = await supabase.auth.verifyOtp({
+          token,
+          type: type as 'signup' | 'magiclink',
+          email,
+        });
+        if (error) console.error('OTP verify error:', error.message);
+        return;
+      }
+
+      // Priority 4: Implicit flow — access_token in hash
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      if (accessToken && refreshToken) {
+        console.log('Setting implicit flow session...');
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (error) console.error('Set session error:', error.message);
+        return;
+      }
+
+      // Fallback: refresh session in case Supabase already handled it
+      console.log('Fallback: refreshing session...');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await fetchUser(session.user.id, session.user.email ?? '');
+      }
+    } catch (e) {
+      console.error('handleAuthUrl error:', e);
+    }
+  };
+
   useEffect(() => {
     // Check existing session on startup
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -49,73 +119,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // Listen for auth state changes (handles session refresh etc)
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         fetchUser(session.user.id, session.user.email ?? '');
-      } else {
+      } else if (_event === 'SIGNED_OUT') {
         setUser(null);
         setLoading(false);
       }
     });
 
-    // Handle deep link callback from magic link email
-    // URL format: linup://auth/callback?token=XXX&type=signup
-    // or: linup://auth/callback#access_token=XXX&refresh_token=XXX
-    onOpenUrl(async (urls: string[]) => {
+    // Register deep link handler
+    onOpenUrl((urls: string[]) => {
       const url = urls[0];
-      if (!url) return;
-      console.log('Deep link received:', url);
-
-      try {
-        // Parse the URL to extract auth params
-        const urlObj = new URL(url);
-        const params = urlObj.searchParams;
-        const hash = urlObj.hash.substring(1);
-        const hashParams = new URLSearchParams(hash);
-
-        // Case 1: OTP token in query params (magic link style)
-        const token = params.get('token');
-        const type = params.get('type') as 'signup' | 'magiclink' | 'recovery' | null;
-
-        // Case 2: PKCE code exchange
-        const code = params.get('code');
-
-        // Case 3: Access token in hash fragment (implicit flow)
-        const accessToken = hashParams.get('access_token');
-        const refreshToken = hashParams.get('refresh_token');
-
-        if (token && type) {
-          // OTP verification
-          const email = params.get('email') ?? '';
-          const { error } = await supabase.auth.verifyOtp({
-            token,
-            type,
-            email,
-          });
-          if (error) console.error('OTP verify error:', error.message);
-        } else if (code) {
-          // PKCE code exchange
-          const { error } = await supabase.auth.exchangeCodeForSession(code);
-          if (error) console.error('Code exchange error:', error.message);
-        } else if (accessToken && refreshToken) {
-          // Implicit flow — set session directly
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-          if (error) console.error('Set session error:', error.message);
-        } else {
-          // Fallback — just refresh the session, Supabase may have handled it
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
-            fetchUser(session.user.id, session.user.email ?? '');
-          }
-        }
-      } catch (e) {
-        console.error('Deep link handling error:', e);
-      }
-    }).catch(e => console.error('onOpenUrl registration error:', e));
+      if (url) handleAuthUrl(url);
+    }).catch(e => console.error('onOpenUrl error:', e));
 
     return () => subscription.unsubscribe();
   }, []);
