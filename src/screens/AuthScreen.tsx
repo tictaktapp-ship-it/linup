@@ -1,8 +1,10 @@
+import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { LOGO_WORDMARK } from '../constants/logos';
 
 export default function AuthScreen() {
+  const { debugLog } = useAuth();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -87,6 +89,13 @@ export default function AuthScreen() {
               Use a different email
             </button>
           </div>
+      {/* DEBUG PANEL - remove before launch */}
+      {debugLog.length > 0 && (
+        <div style={{ position: 'fixed', bottom: 0, right: 0, width: 500, maxHeight: 200, overflowY: 'auto', background: '#000', color: '#0f0', fontSize: 10, fontFamily: 'monospace', padding: 8, zIndex: 9999 }}>
+          {debugLog.map((l, i) => <div key={i}>{l}</div>)}
+        </div>
+      )}
+
         </div>
       </div>
     );
@@ -175,6 +184,13 @@ export default function AuthScreen() {
           </div>
 
         </div>
+      {/* DEBUG PANEL - remove before launch */}
+      {debugLog.length > 0 && (
+        <div style={{ position: 'fixed', bottom: 0, right: 0, width: 500, maxHeight: 200, overflowY: 'auto', background: '#000', color: '#0f0', fontSize: 10, fontFamily: 'monospace', padding: 8, zIndex: 9999 }}>
+          {debugLog.map((l, i) => <div key={i}>{l}</div>)}
+        </div>
+      )}
+
       </div>
     </div>
   );

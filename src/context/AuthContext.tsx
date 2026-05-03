@@ -7,20 +7,29 @@ import type { LinupUser } from '../lib/supabase';
 interface AuthContextType {
   user: LinupUser | null;
   loading: boolean;
+  debugLog: string[];
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
+  debugLog: [],
   signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LinupUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
+
+  const log = (msg: string) => {
+    console.log('[AUTH]', msg);
+    setDebugLog(prev => [...prev.slice(-20), msg]);
+  };
 
   const fetchUser = async (id: string, email: string) => {
+    log('fetchUser: ' + id + ' ' + email);
     try {
       const { data } = await supabase
         .from('users')
@@ -33,85 +42,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await supabase.from('users').insert({ id, email, plan: 'free' });
         setUser({ id, email, plan: 'free' });
       }
-    } catch {
+    } catch (e) {
+      log('fetchUser error: ' + String(e));
       setUser({ id, email, plan: 'free' });
     }
     setLoading(false);
   };
 
   const handleAuthUrl = async (url: string) => {
-    console.log('Auth URL received:', url);
+    log('URL received: ' + url);
     try {
-      // Parse all possible parameter locations
       const urlObj = new URL(url);
-      const params = urlObj.searchParams;
-      // Also check hash fragment
-      const hash = urlObj.hash.startsWith('#') ? urlObj.hash.substring(1) : urlObj.hash;
-      const hashParams = new URLSearchParams(hash);
+      const qp = urlObj.searchParams;
+      const hash = urlObj.hash.startsWith('#') ? urlObj.hash.slice(1) : '';
+      const hp = new URLSearchParams(hash);
 
-      // Priority 1: PKCE code (most common in Supabase v2)
-      const code = params.get('code') || hashParams.get('code');
-      if (code) {
-        console.log('Exchanging PKCE code...');
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) console.error('Code exchange error:', error.message);
-        return;
-      }
+      log('query keys: ' + [...qp.keys()].join(', '));
+      log('hash keys: ' + [...hp.keys()].join(', '));
 
-      // Priority 2: token_hash (Supabase v2 OTP/magic link)
-      const tokenHash = params.get('token_hash') || hashParams.get('token_hash');
-      const type = (params.get('type') || hashParams.get('type') || 'magiclink') as 'signup' | 'magiclink' | 'recovery' | 'invite';
-      if (tokenHash) {
-        console.log('Verifying token hash, type:', type);
-        const { error } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type,
-        });
-        if (error) console.error('Token hash verify error:', error.message);
-        return;
-      }
-
-      // Priority 3: Legacy token + email
-      const token = params.get('token') || hashParams.get('token');
-      const email = params.get('email') || hashParams.get('email') || '';
-      if (token) {
-        console.log('Verifying OTP token...');
-        const { error } = await supabase.auth.verifyOtp({
-          token,
-          type: type as 'signup' | 'magiclink',
-          email,
-        });
-        if (error) console.error('OTP verify error:', error.message);
-        return;
-      }
-
-      // Priority 4: Implicit flow — access_token in hash
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
+      // Supabase v2 server-side verify redirects with access_token in query params
+      const accessToken = qp.get('access_token') || hp.get('access_token');
+      const refreshToken = qp.get('refresh_token') || hp.get('refresh_token');
       if (accessToken && refreshToken) {
-        console.log('Setting implicit flow session...');
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        if (error) console.error('Set session error:', error.message);
+        log('setSession with access_token...');
+        const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+        if (error) log('setSession error: ' + error.message);
+        else log('setSession success');
         return;
       }
 
-      // Fallback: refresh session in case Supabase already handled it
-      console.log('Fallback: refreshing session...');
+      // PKCE code
+      const code = qp.get('code') || hp.get('code');
+      if (code) {
+        log('exchangeCodeForSession: ' + code.substring(0, 10) + '...');
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) log('exchangeCode error: ' + error.message);
+        else log('exchangeCode success');
+        return;
+      }
+
+      // token_hash
+      const tokenHash = qp.get('token_hash') || hp.get('token_hash');
+      const type = (qp.get('type') || hp.get('type') || 'magiclink') as 'signup' | 'magiclink' | 'recovery' | 'invite';
+      if (tokenHash) {
+        log('verifyOtp token_hash type=' + type);
+        const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+        if (error) log('verifyOtp error: ' + error.message);
+        else log('verifyOtp success');
+        return;
+      }
+
+      // legacy token
+      const token = qp.get('token') || hp.get('token');
+      const email = qp.get('email') || hp.get('email') || '';
+      if (token) {
+        log('verifyOtp legacy token type=' + type);
+        const { error } = await supabase.auth.verifyOtp({ token, type: type as 'signup' | 'magiclink', email });
+        if (error) log('verifyOtp legacy error: ' + error.message);
+        else log('verifyOtp legacy success');
+        return;
+      }
+
+      log('NO token found in URL - checking session anyway');
       const { data: { session } } = await supabase.auth.getSession();
+      log('session after fallback: ' + (session ? 'EXISTS user=' + session.user.email : 'null'));
       if (session?.user) {
         await fetchUser(session.user.id, session.user.email ?? '');
       }
     } catch (e) {
-      console.error('handleAuthUrl error:', e);
+      log('handleAuthUrl exception: ' + String(e));
     }
   };
 
   useEffect(() => {
-    // Check existing session on startup
+    log('AuthProvider mounted');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      log('initial session: ' + (session ? 'user=' + session.user.email : 'null'));
       if (session?.user) {
         fetchUser(session.user.id, session.user.email ?? '');
       } else {
@@ -119,21 +125,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      log('authStateChange event=' + event + ' session=' + (session ? session.user.email : 'null'));
       if (session?.user) {
         fetchUser(session.user.id, session.user.email ?? '');
-      } else if (_event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setLoading(false);
       }
     });
 
-    // Register deep link handler
     onOpenUrl((urls: string[]) => {
+      log('onOpenUrl called with ' + urls.length + ' URLs');
       const url = urls[0];
       if (url) handleAuthUrl(url);
-    }).catch(e => console.error('onOpenUrl error:', e));
+    }).catch(e => log('onOpenUrl registration failed: ' + String(e)));
 
     return () => subscription.unsubscribe();
   }, []);
@@ -143,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  return <AuthContext.Provider value={{ user, loading, signOut }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, debugLog, signOut }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);
