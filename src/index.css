@@ -112,8 +112,8 @@ code {
 
 /* LINUP Brand Design Tokens */
 :root {
-  --color-accent-primary: #1D4ED8;
-  --color-accent-hover: #1E40AF;
+  --color-accent-primary: #6366F1;
+  --color-accent-hover: #4F46E5;
   --color-bg-primary: #F9F9F8;
   --color-bg-secondary: #F3F3F1;
   --color-bg-danger: #DC2626;
