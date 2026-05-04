@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface OfflineBannerProps {
   state: 'offline' | 'reconnecting' | 'reconnected';
@@ -11,14 +11,24 @@ const colours = {
 };
 
 const messages = {
-  offline:      'ðŸ“¡  You are offline. Changes are saved locally.',
-  reconnecting: 'ðŸ”„  Reconnecting...',
-  reconnected:  'âœ“  Back online.',
+  offline:      '📡  You are offline. Changes are saved locally.',
+  reconnecting: '🔄  Reconnecting...',
+  reconnected:  '✓  Back online.',
 };
 
 const OfflineBanner: React.FC<OfflineBannerProps> = ({ state }) => {
-  const shouldShow = state !== 'reconnected';
-  if (!shouldShow) return null;
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    setVisible(true);
+    if (state === 'reconnected') {
+      const t = setTimeout(() => setVisible(false), 3000);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [state]);
+
+  if (!visible) return null;
 
   const c = colours[state];
 

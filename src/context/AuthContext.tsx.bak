@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { supabase } from '../lib/supabase';
@@ -11,7 +11,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextType>({
+const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   debugLog: [],
@@ -115,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-  console.log('[AUTH] AuthProvider mounted');
+    log('AuthProvider mounted');
     supabase.auth.getSession().then(({ data: { session } }) => {
       log('initial session: ' + (session ? 'user=' + session.user.email : 'null'));
       if (session?.user) {
@@ -152,5 +152,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={{ user, loading, debugLog, signOut }}>{children}</AuthContext.Provider>;
 }
 
-
-
+export const useAuth = () => useContext(AuthContext);
