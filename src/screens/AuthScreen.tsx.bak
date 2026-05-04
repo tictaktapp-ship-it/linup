@@ -1,4 +1,4 @@
-﻿import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { LOGO_WORDMARK } from '../constants/logos';
@@ -36,7 +36,7 @@ export default function AuthScreen() {
   }
 
   const leftPanel = (
-    <div style={{ flexBasis: '60%', width: '60%', minWidth: 420, background: 'var(--color-accent-primary)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '40px 36px', flexShrink: 0 }}>
+    <div style={{ width: 320, minWidth: 320, background: '#0F172A', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '40px 36px', flexShrink: 0 }}>
       <div>
         <img src={LOGO_WORDMARK} alt='LINUP' style={{ height: 28, marginBottom: 48, filter: 'brightness(0) invert(1)', objectFit: 'contain', objectPosition: 'left', display: 'block' }} />
         <div style={{ fontSize: 22, fontWeight: 700, color: '#F1F5F9', lineHeight: 1.35, marginBottom: 12 }}>
@@ -53,7 +53,7 @@ export default function AuthScreen() {
             'First app is always free',
           ].map(v => (
             <div key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: '#94A3B8' }}>
-              <span style={{ color: 'var(--color-accent-primary)', fontSize: 15, flexShrink: 0, marginTop: 1 }}>&#10003;</span>
+              <span style={{ color: '#6366F1', fontSize: 15, flexShrink: 0, marginTop: 1 }}>&#10003;</span>
               <span>{v}</span>
             </div>
           ))}
@@ -76,7 +76,7 @@ export default function AuthScreen() {
         {leftPanel}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
           <div style={{ maxWidth: 380, width: '100%', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-            <div style={{ width: 64, height: 64, background: 'var(--color-bg-secondary)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>&#9993;</div>
+            <div style={{ width: 64, height: 64, background: '#EEF2FF', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>&#9993;</div>
             <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text-primary)' }}>Check your inbox</div>
             <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.7 }}>
               We sent a secure sign-in link to <strong>{email}</strong>.
@@ -85,7 +85,7 @@ export default function AuthScreen() {
             <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', background: 'var(--color-bg-secondary)', padding: '10px 16px', borderRadius: 8, width: '100%', textAlign: 'left' }}>
               Can&apos;t find it? Check your spam folder. The link expires in 1 hour.
             </div>
-            <button onClick={() => { setSent(false); setEmail(''); setEmailTouched(false); }} style={{ background: 'transparent', border: 'none', color: 'var(--color-accent-primary)', cursor: 'pointer', fontSize: 13 }}>
+            <button onClick={() => { setSent(false); setEmail(''); setEmailTouched(false); }} style={{ background: 'transparent', border: 'none', color: '#6366F1', cursor: 'pointer', fontSize: 13 }}>
               Use a different email
             </button>
           </div>
@@ -104,14 +104,14 @@ export default function AuthScreen() {
   return (
     <div style={{ display: 'flex', height: '100vh', maxWidth: 1400, margin: '0 auto', background: 'var(--color-bg-primary)' }}>
       {leftPanel}
-      <div style={{ flexBasis: '40%', width: '40%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, background: 'var(--color-bg-secondary)' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, background: '#F8FAFC' }}>
         <div style={{ maxWidth: 380, width: '100%', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
           <div>
-            <div style={{ fontSize: 10, color: 'var(--color-accent-primary)', fontWeight: 600, marginBottom: 10, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 11, color: '#6366F1', fontWeight: 600, marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               The fastest way to build internal tools
             </div>
-            <div style={{ fontSize: 30, fontWeight: 750, color: 'var(--color-text-primary)', marginBottom: 6 }}>
+            <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 6 }}>
               Sign in to LINUP
             </div>
             <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
@@ -131,7 +131,7 @@ export default function AuthScreen() {
               aria-label='Email address'
               style={{
                 width: '100%', padding: '11px 14px',
-                border: (error || showEmailError) ? '1.5px solid #DC2626' : focused ? '2px solid var(--color-border-focus)' : '1px solid #CBD5E1',
+                border: (error || showEmailError) ? '1.5px solid #DC2626' : focused ? '1.5px solid #6366F1' : '1px solid #CBD5E1',
                 borderRadius: 8, fontSize: 14,
                 background: '#fff', color: 'var(--color-text-primary)',
                 outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s',
@@ -149,7 +149,7 @@ export default function AuthScreen() {
               disabled={loading}
               aria-label='Continue with email'
               style={{
-                padding: '12px 16px', background: loading ? 'var(--color-accent-hover)' : 'var(--color-accent-primary)', color: '#fff', opacity: loading ? 0.9 : 1,
+                padding: '12px 16px', background: loading ? '#818CF8' : '#6366F1', color: '#fff',
                 border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600,
                 cursor: loading ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -172,12 +172,12 @@ export default function AuthScreen() {
 
           <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', lineHeight: 1.7 }}>
             By continuing, you agree to our{' '}
-            <a href='https://linup.io/terms' target='_blank' rel='noopener noreferrer' style={{ color: 'var(--color-accent-primary)', textDecoration: 'none' }}>Terms &amp; Conditions</a>
+            <a href='https://linup.io/terms' target='_blank' rel='noopener noreferrer' style={{ color: '#6366F1', textDecoration: 'none' }}>Terms &amp; Conditions</a>
             {' '}and{' '}
-            <a href='https://linup.io/privacy' target='_blank' rel='noopener noreferrer' style={{ color: 'var(--color-accent-primary)', textDecoration: 'none' }}>Privacy Policy</a>.
+            <a href='https://linup.io/privacy' target='_blank' rel='noopener noreferrer' style={{ color: '#6366F1', textDecoration: 'none' }}>Privacy Policy</a>.
           </div>
 
-          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 14, fontSize: 11, color: 'var(--color-text-tertiary)', lineHeight: 1.7 }}>
+          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 16, fontSize: 12, color: 'var(--color-text-tertiary)', lineHeight: 1.7 }}>
             <strong style={{ color: 'var(--color-text-secondary)' }}>Free to build.</strong>
             {' '}Payment only at first export \u2014 to verify your identity, not to charge you.
             Your first app export is free. You only pay when starting a second project or upgrading your plan.
@@ -195,5 +195,3 @@ export default function AuthScreen() {
     </div>
   );
 }
-
-
