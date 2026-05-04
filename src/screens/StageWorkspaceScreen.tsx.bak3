@@ -56,10 +56,7 @@ const StageWorkspaceScreen: React.FC = () => {
     </div>
   );
 
-  const headerState =
-  wsState === 'ready_to_run' ? 'running'
-  : wsState === 'offline_readonly' ? 'stopped'
-  : wsState;
+  const headerState: WorkspaceState | 'running' = wsState === 'ready_to_run' ? 'running' : wsState;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -150,5 +147,4 @@ const StageWorkspaceScreen: React.FC = () => {
 };
 
 export default StageWorkspaceScreen;
-
 

@@ -5,7 +5,14 @@ import { supabase } from '../lib/supabase';
 import type { LinupUser } from '../lib/supabase';
 import { AuthContext } from './authContextInstance';
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+interface AuthContextType {
+  user: LinupUser | null;
+  loading: boolean;
+  debugLog: string[];
+  signOut: () => Promise<void>;
+}
+
+export export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LinupUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [debugLog, setDebugLog] = useState<string[]>([]);
@@ -138,7 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return <AuthContext.Provider value={{ user, loading, debugLog, signOut }}>{children}</AuthContext.Provider>;
 }
-
 
 
 
