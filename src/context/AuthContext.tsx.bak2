@@ -1,9 +1,8 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { supabase } from '../lib/supabase';
 import type { LinupUser } from '../lib/supabase';
-import { AuthContext } from './authContextInstance';
 
 interface AuthContextType {
   user: LinupUser | null;
@@ -12,7 +11,14 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-export export function AuthProvider({ children }: { children: ReactNode }) {
+export const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  debugLog: [],
+  signOut: async () => {},
+});
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LinupUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [debugLog, setDebugLog] = useState<string[]>([]);
@@ -145,7 +151,6 @@ export export function AuthProvider({ children }: { children: ReactNode }) {
 
   return <AuthContext.Provider value={{ user, loading, debugLog, signOut }}>{children}</AuthContext.Provider>;
 }
-
 
 
 

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { useEffect, useState } from 'react';
 
 interface OfflineBannerProps {
   state: 'offline' | 'reconnecting' | 'reconnected';
@@ -34,4 +34,3 @@ const OfflineBanner: React.FC<OfflineBannerProps> = ({ state }) => {
 };
 
 export default OfflineBanner;
-

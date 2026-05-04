@@ -147,4 +147,3 @@ const StageWorkspaceScreen: React.FC = () => {
 };
 
 export default StageWorkspaceScreen;
-
