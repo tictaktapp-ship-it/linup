@@ -1,6 +1,6 @@
-﻿import { HashRouter, Routes, Route, useParams, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, useParams, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { useAuth } from './context/useAuth';
+import { useAuth } from './context/AuthContext';
 import TopBar from './components/TopBar';
 import AuthScreen from './screens/AuthScreen';
 import ProjectsScreen from './screens/ProjectsScreen';
