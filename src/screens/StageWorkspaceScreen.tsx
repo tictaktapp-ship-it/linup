@@ -107,7 +107,15 @@ export default function StageWorkspaceScreen() {
   };
 
   const startChat = async () => {
-    const key = await getKeys(); if (!key) return; setChatRunning(true); try { const reply = await callAI([{ role: 'user', content: 'I want to build an internal tool. I provided the name and description during setup. Please start our conversation.' }], key);
+    const key = await getKeys(); if (!key) return; setChatRunning(true); try { // Load project details from DB to seed the conversation
+let projectContext = 'I want to build an app.';
+try {
+  const proj = await invoke<{ name: string; description: string }>('get_project', { projectId: pid });
+  if (proj?.name || proj?.description) {
+    projectContext = `I want to build: "${proj.name || 'an app'}". Here is my brief: ${proj.description || 'No description provided yet.'}. Please ask me follow-up questions based on this brief — do not ask me to re-explain what is already in the brief.`;
+  }
+} catch { /* use default */ }
+const reply = await callAI([{ role: 'user', content: projectContext }], key);
       setMessages([{ role: 'assistant', content: reply }]);
     } catch (e) { setError(String(e)); }
     setChatRunning(false);

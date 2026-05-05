@@ -7,5 +7,5 @@ export const GROQ_BASE_URL = 'https://openrouter.ai/api/v1';
 
 export const MODELS = {
   FAST:    'meta-llama/llama-3.1-8b-instruct',
-  CAPABLE: 'meta-llama/llama-3.3-70b-instruct:free',
+  CAPABLE: 'meta-llama/llama-3.3-70b-instruct',
 } as const;

@@ -124,3 +124,18 @@ pub fn set_stage_status(
 
     Ok(())
 }
+
+#[tauri::command]
+pub fn get_project(project_id: String) -> Result<serde_json::Value, String> {
+    let db = Connection::open("E:\\linup-io\\linup.db").map_err(|e| e.to_string())?;
+    let result = db.query_row(
+        "SELECT id, name, COALESCE(description, '') FROM projects WHERE id = ?1",
+        rusqlite::params![project_id],
+        |row| Ok(serde_json::json!({
+            "id": row.get::<_, String>(0)?,
+            "name": row.get::<_, String>(1)?,
+            "description": row.get::<_, String>(2)?
+        })),
+    ).map_err(|e| format!("Project not found: {e}"))?;
+    Ok(result)
+}
