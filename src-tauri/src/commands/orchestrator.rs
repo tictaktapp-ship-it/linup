@@ -5,10 +5,7 @@ use tauri::Emitter;
 
 const DB_PATH: &str = "E:\\linup-io\\linup.db";
 const GROQ_BASE_URL: &str = "https://api.groq.com/openai/v1/chat/completions";
-
-// Fast cheap model for simple tasks
 const MODEL_FAST: &str = "llama-3.1-8b-instant";
-// Capable model for reasoning, writing, review
 const MODEL_CAPABLE: &str = "llama-3.3-70b-versatile";
 
 fn open_db() -> Result<Connection, String> {
@@ -75,7 +72,60 @@ struct StageGatePayload {
     approved: bool,
 }
 
-// Groq uses OpenAI-compatible API format
+fn token_budget(agent_id: &str) -> usize {
+    match agent_id {
+        "clarifier" => 3000,
+        "spec_writer" => 16000,
+        "quality_gate" => 6000,
+        _ => 8000,
+    }
+}
+
+fn detect_verdict(text: &str, tier: u8, agent_id: &str) -> String {
+    let upper = text.to_uppercase();
+    if agent_id == "quality_gate" {
+        if upper.contains("APPROVED") || upper.contains("CONDITIONAL") {
+            return "PASS".to_string();
+        }
+        if upper.contains("BLOCKED") {
+            return "SOFT_BLOCK".to_string();
+        }
+    }
+    if upper.contains("CRITICAL") || upper.contains("BLOCKED") {
+        return "SOFT_BLOCK".to_string();
+    }
+    if tier == 3 {
+        return "ADVISORY".to_string();
+    }
+    if upper.contains("ADVISORY") {
+        return "ADVISORY".to_string();
+    }
+    "PASS".to_string()
+}
+
+fn da_has_enough_findings(text: &str) -> bool {
+    let numbered = (1..=10).filter(|i| text.contains(&format!("{}.", i))).count();
+    let bullets = text.matches("- ").count() + text.matches("* ").count();
+    numbered >= 3 || bullets >= 3
+}
+
+fn check_gate_integrity(results: &[AgentResult], gate_output: &str) -> (String, bool) {
+    let has_critical = results.iter().any(|r| {
+        r.output.to_uppercase().contains("CRITICAL") && r.agent_id != "quality_gate"
+    });
+    let gate_upper = gate_output.to_uppercase();
+    let gate_approved = (gate_upper.contains("APPROVED") || gate_upper.contains("CONDITIONAL"))
+        && !gate_upper.contains("BLOCKED");
+    if has_critical && gate_approved {
+        let overridden = format!(
+            "{}\n\n---\nCONSTITUTION OVERRIDE: CRITICAL findings exist. Verdict changed to BLOCKED.",
+            gate_output
+        );
+        return (overridden, false);
+    }
+    (gate_output.to_string(), gate_approved)
+}
+
 async fn call_groq(api_key: &str, model: &str, system: &str, user_message: &str) -> Result<String, String> {
     let client = reqwest::Client::new();
     let body = serde_json::json!({
@@ -86,7 +136,6 @@ async fn call_groq(api_key: &str, model: &str, system: &str, user_message: &str)
             { "role": "user", "content": user_message }
         ]
     });
-
     let response = client
         .post(GROQ_BASE_URL)
         .header("Authorization", format!("Bearer {}", api_key))
@@ -95,14 +144,11 @@ async fn call_groq(api_key: &str, model: &str, system: &str, user_message: &str)
         .send()
         .await
         .map_err(|e| format!("Groq request error: {e}"))?;
-
     let data: serde_json::Value = response.json().await
         .map_err(|e| format!("Groq parse error: {e}"))?;
-
     if let Some(err) = data.get("error") {
         return Err(format!("Groq API error: {}", err["message"].as_str().unwrap_or("unknown")));
     }
-
     data["choices"][0]["message"]["content"]
         .as_str()
         .map(|s| s.to_string())
@@ -127,45 +173,60 @@ async fn run_agent(
         agent_id: agent_id.to_string(),
         role: role.to_string(),
     });
-
-    let result = call_groq(groq_key, model, system_prompt, user_content).await;
-
-    let (verdict, output) = match result {
-        Ok(text) => {
-            let upper = text.to_uppercase();
-            let verdict = if upper.contains("BLOCKED") || upper.contains("CRITICAL") {
-                "SOFT_BLOCK".to_string()
-            } else if tier == 3 || upper.contains("ADVISORY") {
-                "ADVISORY".to_string()
-            } else {
-                "PASS".to_string()
-            };
-            (verdict, text)
+    let budget = token_budget(agent_id);
+    let max_attempts = 2_u32;
+    let mut final_output = String::new();
+    let mut final_verdict = "FAILED".to_string();
+    for attempt in 1..=max_attempts {
+        let effective_system = if attempt > 1 {
+            format!(
+                "{}\n\nCONSTITUTION (retry {}): Include PASS, BLOCKED, CRITICAL, or ADVISORY. Provide at least 3 numbered findings.",
+                system_prompt, attempt
+            )
+        } else {
+            system_prompt.to_string()
+        };
+        match call_groq(groq_key, model, &effective_system, user_content).await {
+            Ok(mut text) => {
+                let char_budget = budget * 4;
+                if text.len() > char_budget {
+                    text.truncate(char_budget);
+                    text.push_str("\n\n[Truncated]");
+                }
+                if agent_id == "devils_advocate" && !da_has_enough_findings(&text) && attempt < max_attempts {
+                    continue;
+                }
+                final_verdict = detect_verdict(&text, tier, agent_id);
+                final_output = text;
+                break;
+            }
+            Err(e) => {
+                if attempt >= max_attempts {
+                    final_output = format!("Agent failed: {}", e);
+                    final_verdict = "FAILED".to_string();
+                }
+            }
         }
-        Err(e) => ("FAILED".to_string(), format!("Agent failed: {e}"))
-    };
-
-    let result = AgentResult {
+    }
+    let agent_result = AgentResult {
         agent_id: agent_id.to_string(),
         role: role.to_string(),
         tier,
         provider: "groq".to_string(),
         model: model.to_string(),
-        verdict: verdict.clone(),
-        output: output.clone(),
+        verdict: final_verdict.clone(),
+        output: final_output.clone(),
         findings: vec![],
     };
-
     let _ = app.emit("agent-completed", AgentCompletedPayload {
         project_id: project_id.to_string(),
         stage_index,
         agent_id: agent_id.to_string(),
         role: role.to_string(),
-        verdict,
-        output,
+        verdict: final_verdict,
+        output: final_output,
     });
-
-    result
+    agent_result
 }
 
 #[tauri::command]
@@ -178,86 +239,82 @@ pub async fn run_council(
 ) -> Result<StageCouncilResult, String> {
     let db = open_db()?;
     let key = &api_keys.groq;
-
     let (name, description): (String, String) = db.query_row(
         "SELECT name, COALESCE(description, '') FROM projects WHERE id = ?1",
         params![project_id],
         |row| Ok((row.get(0)?, row.get(1)?)),
     ).map_err(|e| format!("Project not found: {e}"))?;
-
     let brief = format!("App: {}\nDescription: {}\n\nConversation:\n{}", name, description, user_brief);
     let mut results: Vec<AgentResult> = vec![];
 
-    // Step 1: Clarifier (cheap 8B — just intake)
     let clarifier = run_agent("clarifier", "Clarifier", 1, MODEL_FAST,
-        "You are a product requirements analyst. Given an app brief, list what is clear and identify 3-5 remaining questions. Format: JSON block of confirmed requirements, then numbered questions.",
+        "You are a product requirements analyst. List confirmed requirements as JSON then ask 3-5 clarifying questions.",
         &brief, key, &app, &project_id, stage_index).await;
     results.push(clarifier.clone());
 
-    // Step 2: Spec Writer (capable 70B — long form writing)
     let spec_input = format!("Brief:\n{}\n\nClarifier:\n{}", brief, clarifier.output);
     let spec_writer = run_agent("spec_writer", "Spec Writer", 1, MODEL_CAPABLE,
-        "You are a senior product manager. Write a comprehensive product specification in markdown with: # Executive Summary, ## Target Users, ## User Stories (5+, As a/I want/So that), ## Acceptance Criteria (testable), ## Technical Constraints, ## Feature List (MoSCoW), ## Out of Scope.",
+        "Write a comprehensive product specification in markdown: # Executive Summary, ## Target Users, ## User Stories (5+), ## Acceptance Criteria, ## Technical Constraints, ## Feature List (MoSCoW), ## Out of Scope.",
         &spec_input, key, &app, &project_id, stage_index).await;
     results.push(spec_writer.clone());
 
     let spec = spec_writer.output.clone();
     let review_input = format!("Review this product specification:\n\n{}", spec);
 
-    // Step 3: Parallel reviewers (all capable 70B)
     let devils_advocate = run_agent("devils_advocate", "Devil's Advocate", 1, MODEL_CAPABLE,
-        "You are an adversarial product reviewer. Find everything wrong, missing, ambiguous, or contradictory. Rate each finding CRITICAL (blocks), WARNING (should fix), or MINOR. Be thorough.",
+        "Find everything wrong, missing, or contradictory. Number each finding and rate CRITICAL, WARNING, or MINOR. Find at least 3 issues.",
         &review_input, key, &app, &project_id, stage_index).await;
     results.push(devils_advocate.clone());
 
     let realist = run_agent("realist", "Realist", 1, MODEL_CAPABLE,
-        "You are a senior project manager. Review this spec for scope realism. Give an effort estimate. Label each feature KEEP (MVP), DEFER (v2), or REMOVE. Be direct.",
+        "Review scope realism. Estimate effort. Label each feature KEEP, DEFER, or REMOVE.",
         &review_input, key, &app, &project_id, stage_index).await;
     results.push(realist.clone());
 
     let security = run_agent("security", "Security Reviewer", 2, MODEL_CAPABLE,
-        "You are a security engineer. Review this spec for security gaps. Rate: CRITICAL (blocks), HIGH (must fix), MEDIUM (should fix), LOW (advisory). Add specific security requirements missing from the spec.",
+        "Review for security gaps. Number findings and rate CRITICAL, HIGH, MEDIUM, or LOW.",
         &review_input, key, &app, &project_id, stage_index).await;
     results.push(security.clone());
 
-    // Accessibility uses cheap 8B — checklist task
     let accessibility = run_agent("accessibility", "Accessibility Auditor", 2, MODEL_FAST,
-        "You are an accessibility specialist. Review this spec against WCAG 2.1 AA. List specific requirements missing. Format as a checklist.",
+        "Review against WCAG 2.1 AA. List missing requirements as a numbered checklist.",
         &review_input, key, &app, &project_id, stage_index).await;
     results.push(accessibility.clone());
 
     let innovator = run_agent("innovator", "Innovator", 3, MODEL_CAPABLE,
-        "You are a first-principles product thinker. Is this the best way to solve the problem? Suggest 2-3 alternative or enhanced approaches with tradeoffs. Be genuinely creative. This is advisory only.",
+        "Is this the best approach? Suggest 2-3 alternatives with tradeoffs. This is ADVISORY only.",
         &review_input, key, &app, &project_id, stage_index).await;
     results.push(innovator.clone());
 
     let business_analyst = run_agent("business_analyst", "Business Analyst", 3, MODEL_CAPABLE,
-        "You are a business analyst. Validate this spec solves the stated problem. Assess adoption risks, ROI, and success metrics. Verdict: SOUND (proceed), WEAK (flag concerns), or UNSOUND (redesign).",
+        "Validate problem-solution fit, adoption risks, ROI. Verdict: SOUND, WEAK, or UNSOUND.",
         &review_input, key, &app, &project_id, stage_index).await;
     results.push(business_analyst.clone());
 
-    // Step 4: Quality Gate (capable 70B — final decision)
     let gate_input = format!(
         "Spec:\n{}\n\nDevil's Advocate:\n{}\n\nRealist:\n{}\n\nSecurity:\n{}\n\nBusiness Analyst:\n{}",
         spec, devils_advocate.output, realist.output, security.output, business_analyst.output
     );
     let quality_gate = run_agent("quality_gate", "Quality Gate", 1, MODEL_CAPABLE,
-        "You are the final quality gate. Score this spec on 9 criteria with PASS/FAIL + one-sentence evidence: (1) Problem defined, (2) Users identified, (3) 5+ user stories, (4) Testable criteria, (5) Technical constraints, (6) Security requirements, (7) No unresolved CRITICAL findings, (8) Business case sound, (9) Scope realistic. Final verdict: APPROVED, CONDITIONAL, or BLOCKED. Format as markdown table.",
+        "Score 9 criteria PASS/FAIL with evidence: (1) Problem defined, (2) Users identified, (3) 5+ user stories, (4) Testable criteria, (5) Technical constraints, (6) Security requirements, (7) No unresolved CRITICAL, (8) Business case sound, (9) Scope realistic. Final verdict: APPROVED, CONDITIONAL, or BLOCKED. Format as markdown table.",
         &gate_input, key, &app, &project_id, stage_index).await;
     results.push(quality_gate.clone());
 
-    let approved = quality_gate.output.to_uppercase().contains("APPROVED")
-        || quality_gate.output.to_uppercase().contains("CONDITIONAL");
+    let (enforced_output, approved) = check_gate_integrity(&results, &quality_gate.output);
+
+    if let Some(gate) = results.iter_mut().find(|r| r.agent_id == "quality_gate") {
+        gate.output = enforced_output.clone();
+        gate.verdict = if approved { "PASS".to_string() } else { "SOFT_BLOCK".to_string() };
+    }
 
     let _ = app.emit("stage-gate", StageGatePayload {
         project_id: project_id.clone(),
         stage_index,
-        scorecard: quality_gate.output.clone(),
+        scorecard: enforced_output.clone(),
         verdict: if approved { "APPROVED".to_string() } else { "BLOCKED".to_string() },
         approved,
     });
 
-    // Persist to DB
     let council_json = serde_json::to_string(&results).unwrap_or_default();
     let artifact_id = uuid::Uuid::new_v4().to_string();
     let created_at = chrono::Utc::now().to_rfc3339();
@@ -284,7 +341,7 @@ pub async fn run_council(
         stage_index,
         agents: results,
         gate_verdict: if approved { "APPROVED".to_string() } else { "BLOCKED".to_string() },
-        gate_scorecard: quality_gate.output,
+        gate_scorecard: enforced_output,
         approved,
     })
 }
@@ -297,13 +354,19 @@ pub fn get_council_result(project_id: String, stage_index: i64) -> Result<Option
         params![project_id, stage_index],
         |row| { let b: Vec<u8> = row.get(0)?; Ok(String::from_utf8(b).unwrap_or_default()) },
     ).ok();
-
     if let Some(json) = result {
         let agents: Vec<AgentResult> = serde_json::from_str(&json).unwrap_or_default();
         let gate = agents.iter().find(|a| a.agent_id == "quality_gate");
         let scorecard = gate.map(|g| g.output.clone()).unwrap_or_default();
         let approved = scorecard.to_uppercase().contains("APPROVED") || scorecard.to_uppercase().contains("CONDITIONAL");
-        Ok(Some(StageCouncilResult { project_id, stage_index, agents, gate_verdict: if approved { "APPROVED".to_string() } else { "BLOCKED".to_string() }, gate_scorecard: scorecard, approved }))
+        Ok(Some(StageCouncilResult {
+            project_id,
+            stage_index,
+            agents,
+            gate_verdict: if approved { "APPROVED".to_string() } else { "BLOCKED".to_string() },
+            gate_scorecard: scorecard,
+            approved,
+        }))
     } else {
         Ok(None)
     }

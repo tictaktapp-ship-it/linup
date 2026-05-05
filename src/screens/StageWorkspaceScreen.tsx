@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
+import { GROQ_API_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
 
 const SYSTEM_PROMPT = "You are LINUP, an expert product manager. Help the user define their internal tool through a focused conversation. Ask 2-3 targeted questions covering: who the users are, the core workflow, key constraints. After 2-3 exchanges, tell the user you have enough context and they should click the Run Council button to deploy the full AI review council.";
@@ -105,8 +106,8 @@ export default function StageWorkspaceScreen() {
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || chatRunning || councilRunning) return;
-    const keys = await getKeys();
-    if (!keys) return;
+    const key = await getKeys();
+    if (!key) return;
     const updated = [...messages, { role: 'user' as const, content: text }];
     setMessages(updated); setInput(''); setChatRunning(true); setError(null);
     try {
