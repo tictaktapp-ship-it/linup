@@ -244,7 +244,53 @@ pub async fn run_council(
         params![project_id],
         |row| Ok((row.get(0)?, row.get(1)?)),
     ).map_err(|e| format!("Project not found: {e}"))?;
-    let brief = format!("App: {}\nDescription: {}\n\nConversation:\n{}", name, description, user_brief);
+    // Load brand profile and inject into agent brief
+    let brand_ctx = db.query_row(
+        "SELECT COALESCE(brand_primary_colour,'none'), COALESCE(brand_tone,'none'), COALESCE(brand_font_preference,'none'), COALESCE(brand_has_logo,0) FROM projects WHERE id=?1",
+        params![project_id],
+        |row| Ok(format!(
+            "colour={}, tone={}, font={}, has_logo={}",
+            row.get::<_,String>(0)?, row.get::<_,String>(1)?,
+            row.get::<_,String>(2)?,
+            if row.get::<_,i64>(3)? == 1 { "yes" } else { "no" }
+        )),
+    ).unwrap_or_else(|_| "not set".to_string());
+
+    let brief = format!(
+        "App: {}\nDescription: {}\nBrand profile: {}\n\nConversation:\n{}",
+        name, description, brand_ctx, user_brief
+    );
+    // ── F-101: Extract brand profile from conversation ────────────────────────
+    let brand_extract_prompt = format!(
+        "Extract brand information from this conversation. Return ONLY a valid JSON object with exactly these keys (use empty string if not mentioned, false for boolean if not mentioned):\n{{\"primary_colour\":\"\",\"secondary_colour\":\"\",\"tone\":\"\",\"font_preference\":\"\",\"has_logo\":false,\"notes\":\"\"}}\n\nConversation:\n{}",
+        user_brief
+    );
+    if let Ok(brand_raw) = call_groq(key, MODEL_FAST,
+        "You are a JSON data extractor. Extract brand info and return ONLY valid JSON with no explanation, no markdown, no backticks.",
+        &brand_extract_prompt).await
+    {
+        // Strip any markdown fences if present
+        let brand_json = brand_raw.trim()
+            .trim_start_matches("```json")
+            .trim_start_matches("```")
+            .trim_end_matches("```")
+            .trim();
+        if let Ok(brand) = serde_json::from_str::<serde_json::Value>(brand_json) {
+            let _ = db.execute(
+                "UPDATE projects SET brand_primary_colour=?1, brand_secondary_colour=?2, brand_tone=?3, brand_font_preference=?4, brand_has_logo=?5, brand_notes=?6 WHERE id=?7",
+                params![
+                    brand["primary_colour"].as_str().unwrap_or(""),
+                    brand["secondary_colour"].as_str().unwrap_or(""),
+                    brand["tone"].as_str().unwrap_or(""),
+                    brand["font_preference"].as_str().unwrap_or(""),
+                    if brand["has_logo"].as_bool().unwrap_or(false) { 1i64 } else { 0i64 },
+                    brand["notes"].as_str().unwrap_or(""),
+                    project_id
+                ],
+            );
+        }
+    }
+
     let mut results: Vec<AgentResult> = vec![];
 
     let clarifier = run_agent("clarifier", "Clarifier", 1, MODEL_FAST,

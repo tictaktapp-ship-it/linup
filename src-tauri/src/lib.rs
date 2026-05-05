@@ -101,6 +101,12 @@ pub fn run() {
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
                     tauri_plugin_sql::Migration {
+                        version: 16,
+                        description: "brand_intake",
+                        sql: include_str!("../migrations/016_brand_intake.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
+                    tauri_plugin_sql::Migration {
                         version: 12,
                         description: "create_mec_tables",
                         sql: include_str!("../migrations/012_mec.sql"),
