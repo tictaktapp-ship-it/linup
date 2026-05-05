@@ -1,140 +1,119 @@
+/* ── LINUP Brand System v2 ──────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* Brand colours */
+  --color-brand:              #8C00B4;
+  --color-brand-hover:        #7A00A0;
+  --color-brand-light:        rgba(140,0,180,0.12);
+  --color-brand-magenta:      #C400FF;
+  --color-brand-deep:         #3D006B;
+  --color-brand-gradient:     linear-gradient(135deg, #3D006B 0%, #8C00B4 50%, #C400FF 100%);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* Surfaces — light mode */
+  --color-surface-0:          #FAFAFA;
+  --color-surface-1:          #F4F4F2;
+  --color-surface-2:          #EBEBEA;
+  --color-surface-3:          #E0E0DE;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+  /* Aliases used in components */
+  --color-bg-primary:         #FAFAFA;
+  --color-bg-secondary:       #F4F4F2;
+  --color-accent-primary:     #8C00B4;
+  --color-accent-hover:       #7A00A0;
+  --color-border-primary:     #E0E0DE;
+  --color-border-tertiary:    #E0E0DE;
+  --color-border-focus:       #8C00B4;
+
+  /* Text */
+  --color-text-primary:       #1A1A18;
+  --color-text-secondary:     #4A4A46;
+  --color-text-tertiary:      #8A8A82;
+  --color-text-disabled:      #BEBEB8;
+
+  /* Semantic */
+  --color-success:            #2D6A4F;
+  --color-success-bg:         #D8F3DC;
+  --color-success-bright:     #52B788;
+  --color-warning:            #B45309;
+  --color-warning-bg:         #FEF3C7;
+  --color-error:              #DC2626;
+  --color-error-bg:           #FEF2F2;
+  --color-advisory:           #6366F1;
+  --color-advisory-bg:        #EEF2FF;
+
+  /* Typography */
+  --font-sans:  'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', ui-monospace, Consolas, monospace;
+
+  /* Spacing (4px grid) */
+  --space-1: 4px;  --space-2: 8px;   --space-3: 12px;
+  --space-4: 16px; --space-5: 20px;  --space-6: 24px;
+  --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  /* Border radius */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
+  --shadow-brand: 0 0 0 3px rgba(140,0,180,0.20);
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--color-surface-0);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  text-rendering: optimizeLegibility;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
+/* Full width — NO maxWidth, NO centring, NO border constraints */
 #root {
   width: 100%;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
   overflow: hidden;
 }
 
-body {
-  margin: 0;
+/* ── Scrollbars ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-surface-3); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #C4C4C0; }
+
+/* ── Selection ──────────────────────────────────────────────────────────── */
+::selection { background: rgba(140,0,180,0.15); color: var(--color-text-primary); }
+
+/* ── Focus ──────────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-brand);
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+/* ── Animations ─────────────────────────────────────────────────────────── */
+@keyframes linup-spin {
+  to { transform: rotate(360deg); }
 }
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+@keyframes linup-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+@keyframes linup-fadein {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
-
-/* LINUP Brand Design Tokens */
-:root {
-  --color-accent-primary: #8C00B4;
-  --color-accent-hover: #7A00A0;
-  --color-bg-primary: #F9F9F8;
-  --color-bg-secondary: #F3F3F1;
-  --color-bg-danger: #DC2626;
-  --color-text-primary: #1A1A18;
-  --color-text-secondary: #6B6B66;
-  --color-text-tertiary: #9B9B94;
-  --color-text-danger: #DC2626;
-  --color-text-success: #16A34A;
-  --color-border-primary: #E4E4E0;
-  --color-border-tertiary: #E4E4E0;
-  --color-border-focus: #8C00B4;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
-
-@keyframes linup-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }

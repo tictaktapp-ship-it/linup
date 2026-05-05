@@ -174,16 +174,16 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
 
-      <div style={{ width: 192, background: '#0F172A', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
+      <div style={{ width: 192, background: '#0C0C0E', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
         <div style={{ padding: '16px 14px 8px', fontSize: 10, fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Pipeline</div>
         {STAGES.map(stage => {
           const isActive = stage.index === currentStage;
           const isDone = stage.index < currentStage;
           return (
             <button key={stage.index} onClick={() => { setCurrentStage(stage.index); setMessages([]); setStageStatus(null); setCouncil(makeEmptyCouncil()); }}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', border: 'none', background: isActive ? '#1E293B' : 'transparent', cursor: 'pointer', textAlign: 'left', borderLeft: isActive ? '3px solid #6366F1' : '3px solid transparent' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', border: 'none', background: isActive ? '#1E293B' : 'transparent', cursor: 'pointer', textAlign: 'left', borderLeft: isActive ? '3px solid var(--color-brand)' : '3px solid transparent' }}>
               <span style={{ fontSize: 14, flexShrink: 0 }}>{stage.icon}</span>
-              <span style={{ fontSize: 12, color: isDone ? '#22C55E' : isActive ? '#F1F5F9' : '#475569', fontWeight: isActive ? 600 : 400 }}>{stage.index + 1}. {stage.name}</span>
+              <span style={{ fontSize: 12, color: isDone ? '#52B788' : isActive ? '#F1F5F9' : '#475569', fontWeight: isActive ? 600 : 400 }}>{stage.index + 1}. {stage.name}</span>
               {isDone && <span style={{ marginLeft: 'auto', color: '#22C55E', fontSize: 12 }}>&#10003;</span>}
             </button>
           );
@@ -199,7 +199,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {(chatRunning || councilRunning) && <span style={spin} />}
             {readyToRunCouncil && (
-              <button onClick={runCouncil} style={{ padding: '8px 16px', background: '#6366F1', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+              <button onClick={runCouncil} style={{ padding: '8px 16px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                 Deploy AI Council
               </button>
             )}
@@ -227,14 +227,14 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           {messages.map((msg, i) => (
             <div key={i} style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
               <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 4, paddingLeft: 4, paddingRight: 4 }}>{msg.role === 'user' ? 'You' : 'LINUP'}</div>
-              <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px', background: msg.role === 'user' ? '#6366F1' : 'var(--color-bg-secondary)', color: msg.role === 'user' ? '#fff' : 'var(--color-text-primary)', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+              <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px', background: msg.role === 'user' ? 'var(--color-brand)' : 'var(--color-bg-secondary)', color: msg.role === 'user' ? '#fff' : 'var(--color-text-primary)', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{msg.content}</div>
             </div>
           ))}
           {chatRunning && <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', color: 'var(--color-text-tertiary)', fontSize: 13 }}><span style={spin} /> LINUP is thinking...</div>}
           {readyToRunCouncil && (
             <div style={{ textAlign: 'center', padding: '24px 0', borderTop: '1px dashed var(--color-border-tertiary)', marginTop: 8 }}>
               <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 16, lineHeight: 1.6 }}>Ready to deploy the AI council.<br /><strong>9 specialist agents</strong> will review your brief simultaneously.</div>
-              <button onClick={runCouncil} style={{ padding: '12px 28px', background: '#6366F1', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Deploy AI Council</button>
+              <button onClick={runCouncil} style={{ padding: '12px 28px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Deploy AI Council</button>
               <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 8 }}>Clarifier · Devil's Advocate · Spec Writer · Security · Innovator · Business Analyst · Quality Gate</div>
             </div>
           )}
@@ -243,7 +243,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         {status !== 'approved' && council.agents.length === 0 && (
           <div style={{ padding: '12px 16px', borderTop: '0.5px solid var(--color-border-tertiary)', display: 'flex', gap: 8, flexShrink: 0 }}>
             <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Answer LINUP's questions... (Enter to send)" rows={2} disabled={chatRunning || councilRunning} style={{ flex: 1, padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', borderRadius: 8, fontSize: 14, resize: 'none', fontFamily: 'system-ui', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', outline: 'none' }} />
-            <button onClick={sendMessage} disabled={chatRunning || councilRunning || !input.trim()} style={{ padding: '0 18px', background: '#6366F1', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Send</button>
+            <button onClick={sendMessage} disabled={chatRunning || councilRunning || !input.trim()} style={{ padding: '0 18px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Send</button>
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-﻿import { LOGO_WORDMARK } from '../constants/logos';
+import { LOGO_WORDMARK } from '../constants/logos';
 
 export default function TopBar() {
   return (
@@ -11,18 +11,21 @@ export default function TopBar() {
       borderBottom: '0.5px solid var(--color-border-tertiary)',
       background: 'var(--color-bg-primary)',
       flexShrink: 0,
+      width: '100%',
     }}>
-      <img src={LOGO_WORDMARK} alt='LINUP' style={{ height: 18 }} />
+      <img src={LOGO_WORDMARK} alt='LINUP' style={{ height: 20 }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)' }}>Settings</span>
+        <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', cursor: 'pointer' }}>
+          Settings
+        </span>
         <div style={{
-          width: 28, height: 28, borderRadius: '50%',
-          background: 'var(--color-accent-primary)',
+          width: 30, height: 30, borderRadius: '50%',
+          background: 'var(--color-brand-gradient)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 12, color: '#fff', fontWeight: 600, cursor: 'pointer',
+          fontSize: 12, color: '#fff', fontWeight: 700, cursor: 'pointer',
+          flexShrink: 0,
         }}>E</div>
       </div>
     </div>
   );
 }
-

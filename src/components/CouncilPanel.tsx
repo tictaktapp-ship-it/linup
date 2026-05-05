@@ -62,9 +62,9 @@ const DONE_LABELS: Record<string, string> = {
 };
 
 const VERDICT_COLOR: Record<string, string> = {
-  PASS:       '#16A34A',
-  SOFT_BLOCK: '#D97706',
-  ADVISORY:   '#6366F1',
+  PASS:       'var(--color-success)',
+  SOFT_BLOCK: 'var(--color-warning)',
+  ADVISORY:   'var(--color-advisory)',
   RUNNING:    '#0284C7',
   PENDING:    '#CBD5E1',
   FAILED:     '#DC2626',
@@ -127,7 +127,7 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
             {running.length > 0 ? (ACTIVITY_LABELS[running[0].agent_id] ?? 'Working...') : 'Starting...'}
           </div>
         ) : total > 0 ? (
-          <div style={{ fontSize: 11, fontWeight: 600, color: council.approved ? '#16A34A' : '#DC2626', marginBottom: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: council.approved ? 'var(--color-success)' : '#DC2626', marginBottom: 8 }}>
             {council.approved ? '✓ All checks passed' : '⚠ Issues found — review before approving'}
           </div>
         ) : (
@@ -137,7 +137,7 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
         {/* Progress bar */}
         {total > 0 && (
           <div style={{ height: 3, background: '#E2E8F0', borderRadius: 2, marginBottom: 10 }}>
-            <div style={{ height: '100%', borderRadius: 2, transition: 'width 0.4s', width: `${(done.length / total) * 100}%`, background: council.approved ? '#16A34A' : council.running ? '#6366F1' : '#DC2626' }} />
+            <div style={{ height: '100%', borderRadius: 2, transition: 'width 0.4s', width: `${(done.length / total) * 100}%`, background: council.approved ? 'var(--color-success)' : council.running ? 'var(--color-advisory)' : '#DC2626' }} />
           </div>
         )}
 
@@ -146,7 +146,7 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
           <div style={{ display: 'flex', gap: 0, marginBottom: -1 }}>
             {['progress', 'review'].map(tab => (
               <button key={tab} onClick={() => setView(tab as 'progress' | 'review')}
-                style={{ flex: 1, padding: '6px 0', border: 'none', borderBottom: view === tab ? '2px solid #6366F1' : '2px solid transparent', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: view === tab ? '#6366F1' : '#94A3B8' }}>
+                style={{ flex: 1, padding: '6px 0', border: 'none', borderBottom: view === tab ? '2px solid #6366F1' : '2px solid transparent', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: view === tab ? 'var(--color-advisory)' : '#94A3B8' }}>
                 {tab === 'progress' ? 'Status' : 'Review table'}
               </button>
             ))}
@@ -240,7 +240,7 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
               <button
                 onClick={() => { if (feedback.trim()) { onRequestChanges(feedback); setFeedback(''); } }}
                 disabled={!feedback.trim()}
-                style={{ width: '100%', marginTop: 6, padding: '8px', background: feedback.trim() ? '#6366F1' : '#E4E4E0', color: feedback.trim() ? '#fff' : '#9B9B94', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: feedback.trim() ? 'pointer' : 'not-allowed' }}>
+                style={{ width: '100%', marginTop: 6, padding: '8px', background: feedback.trim() ? 'var(--color-advisory)' : '#E4E4E0', color: feedback.trim() ? '#fff' : '#9B9B94', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: feedback.trim() ? 'pointer' : 'not-allowed' }}>
                 Submit feedback for revision
               </button>
             </div>
@@ -252,7 +252,7 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
       {total > 0 && !council.running && (
         <div style={{ padding: '10px 12px', borderTop: '0.5px solid #E2E8F0', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <button onClick={onApprove} disabled={!canApprove}
-            style={{ padding: '9px', fontWeight: 700, fontSize: 12, border: 'none', borderRadius: 8, cursor: canApprove ? 'pointer' : 'not-allowed', background: canApprove ? '#16A34A' : '#E4E4E0', color: canApprove ? '#fff' : '#9B9B94' }}>
+            style={{ padding: '9px', fontWeight: 700, fontSize: 12, border: 'none', borderRadius: 8, cursor: canApprove ? 'pointer' : 'not-allowed', background: canApprove ? 'var(--color-success)' : '#E4E4E0', color: canApprove ? '#fff' : '#9B9B94' }}>
             {status === 'approved' ? '✓ Approved' : '✓ Approve and continue'}
           </button>
           <button onClick={onReject}
