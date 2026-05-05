@@ -25,20 +25,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [callbackPort, setCallbackPort] = useState<number | null>(null);
 
   const fetchUser = async (id: string, email: string) => {
+    // Always set a fallback immediately so we never hang on Loading...
+    const fallback: LinupUser = { id, email, plan: 'free' };
+
     try {
-      const { data } = await supabase
-        .from('users')
-        .select('id, email, plan')
-        .eq('id', id)
-        .single();
+      // Race against a 5 second timeout
+      const result = await Promise.race([
+        supabase.from('users').select('id, email, plan').eq('id', id).single(),
+        new Promise<{ data: null; error: Error }>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 5000)
+        ),
+      ]);
+
+      const { data, error } = result as { data: LinupUser | null; error: unknown };
+
       if (data) {
-        setUser(data as LinupUser);
+        setUser(data);
       } else {
-        await supabase.from('users').insert({ id, email, plan: 'free' });
-        setUser({ id, email, plan: 'free' });
+        // Try to insert — if it fails (e.g. already exists) that is fine
+        await supabase.from('users').upsert({ id, email, plan: 'free' }, { onConflict: 'id' });
+        setUser(fallback);
       }
     } catch {
-      setUser({ id, email, plan: 'free' });
+      // On any error or timeout, let the user in with free plan
+      setUser(fallback);
     }
     setLoading(false);
   };
