@@ -127,6 +127,10 @@ pub fn run() {
     Ok(())
 })
 .invoke_handler(tauri::generate_handler![
+            commands::stage_runner::reject_stage,
+            commands::stage_runner::approve_stage,
+            commands::stage_runner::run_stage,
+            commands::stage_runner::get_stage_status,
             commands::auth_callback::start_auth_callback_server,
             commands::project::create_project,
             commands::updater::get_update_history,
