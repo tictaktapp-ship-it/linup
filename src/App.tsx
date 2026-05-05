@@ -38,7 +38,7 @@ function AppContent() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       <TopBar />
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <Routes>
           <Route path='/' element={<ProjectsScreen />} />
           <Route path='/onboarding' element={<OnboardingFlow />} />

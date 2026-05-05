@@ -319,14 +319,14 @@ pub async fn run_council(
     let artifact_id = uuid::Uuid::new_v4().to_string();
     let created_at = chrono::Utc::now().to_rfc3339();
     db.execute(
-        "INSERT INTO artifacts (id, project_id, stage_index, artifact_type, content, created_at) VALUES (?1,?2,?3,'council_result',?4,?5)",
-        params![artifact_id, project_id, stage_index, council_json.as_bytes().to_vec(), created_at],
+        "INSERT INTO council_artifacts (id, project_id, stage_index, artifact_type, content, created_at) VALUES (?1,?2,?3,'council_result',?4,?5)",
+        params![artifact_id, project_id, stage_index, council_json, created_at],
     ).map_err(|e| e.to_string())?;
 
     let spec_id = uuid::Uuid::new_v4().to_string();
     db.execute(
-        "INSERT INTO artifacts (id, project_id, stage_index, artifact_type, content, created_at) VALUES (?1,?2,?3,'product_spec',?4,?5)",
-        params![spec_id, project_id, stage_index, spec.as_bytes().to_vec(), created_at],
+        "INSERT INTO council_artifacts (id, project_id, stage_index, artifact_type, content, created_at) VALUES (?1,?2,?3,'product_spec',?4,?5)",
+        params![spec_id, project_id, stage_index, spec, created_at],
     ).map_err(|e| e.to_string())?;
 
     let run_id = uuid::Uuid::new_v4().to_string();
@@ -350,9 +350,9 @@ pub async fn run_council(
 pub fn get_council_result(project_id: String, stage_index: i64) -> Result<Option<StageCouncilResult>, String> {
     let db = open_db()?;
     let result = db.query_row(
-        "SELECT content FROM artifacts WHERE project_id=?1 AND stage_index=?2 AND artifact_type='council_result' ORDER BY created_at DESC LIMIT 1",
+        "SELECT content FROM council_artifacts WHERE project_id=?1 AND stage_index=?2 AND artifact_type='council_result' ORDER BY created_at DESC LIMIT 1",
         params![project_id, stage_index],
-        |row| { let b: Vec<u8> = row.get(0)?; Ok(String::from_utf8(b).unwrap_or_default()) },
+        |row| { let s: String = row.get(0)?; Ok(s) },
     ).ok();
     if let Some(json) = result {
         let agents: Vec<AgentResult> = serde_json::from_str(&json).unwrap_or_default();

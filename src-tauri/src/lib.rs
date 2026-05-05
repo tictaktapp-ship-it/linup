@@ -95,6 +95,12 @@ pub fn run() {
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     },
                     tauri_plugin_sql::Migration {
+                        version: 15,
+                        description: "council_artifacts",
+                        sql: include_str!("../migrations/015_council_artifacts.sql"),
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    },
+                    tauri_plugin_sql::Migration {
                         version: 12,
                         description: "create_mec_tables",
                         sql: include_str!("../migrations/012_mec.sql"),

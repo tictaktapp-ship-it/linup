@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import AgentCard from './AgentCard';
 
 export interface AgentResult {
   agent_id: string;
@@ -23,141 +22,234 @@ export interface CouncilState {
 interface CouncilPanelProps {
   council: CouncilState;
   onApprove: () => void;
-  onRequestChanges: () => void;
+  onRequestChanges: (feedback: string) => void;
   onReject: () => void;
   status: string;
 }
 
-const TIER_ORDER = [1, 2, 3, 4];
-const TIER_LABEL: Record<number, string> = {
-  1: 'TIER 1 — CORE COUNCIL',
-  2: 'TIER 2 — SPECIALISTS',
-  3: 'TIER 3 — INNOVATION',
-  4: 'TIER 4 — STAGE EXPERTS',
+const ACTIVITY_LABELS: Record<string, string> = {
+  clarifier:        'Understanding your requirements',
+  spec_writer:      'Writing your product specification',
+  devils_advocate:  'Checking for gaps and issues',
+  realist:          'Reviewing scope and feasibility',
+  security:         'Running security review',
+  accessibility:    'Checking accessibility',
+  gdpr:             'Reviewing privacy compliance',
+  innovator:        'Exploring better approaches',
+  business_analyst: 'Validating the business case',
+  quality_gate:     'Running final quality checks',
+};
+
+const DONE_LABELS: Record<string, string> = {
+  clarifier:        'Requirements understood',
+  spec_writer:      'Specification written',
+  devils_advocate:  'Gap analysis complete',
+  realist:          'Scope review complete',
+  security:         'Security review complete',
+  accessibility:    'Accessibility checked',
+  gdpr:             'Privacy review complete',
+  innovator:        'Alternatives explored',
+  business_analyst: 'Business case validated',
+  quality_gate:     'Quality checks complete',
+};
+
+const VERDICT_COLOR: Record<string, string> = {
+  PASS:       '#16A34A',
+  SOFT_BLOCK: '#D97706',
+  ADVISORY:   '#6366F1',
+  RUNNING:    '#0284C7',
+  PENDING:    '#CBD5E1',
+  FAILED:     '#DC2626',
+};
+
+const VERDICT_ICON: Record<string, string> = {
+  PASS:       '✓',
+  SOFT_BLOCK: '⚠',
+  ADVISORY:   '💡',
+  RUNNING:    '◉',
+  PENDING:    '○',
+  FAILED:     '✗',
 };
 
 export default function CouncilPanel({ council, onApprove, onRequestChanges, onReject, status }: CouncilPanelProps) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [showScorecard, setShowScorecard] = useState(false);
+  const [view, setView] = useState<'progress' | 'review'>('progress');
+  const [feedback, setFeedback] = useState('');
+  const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
 
-  const toggleExpand = (id: string) => setExpanded(prev => prev === id ? null : id);
-
-  const agentsByTier = TIER_ORDER.map(tier => ({
-    tier,
-    agents: council.agents.filter(a => a.tier === tier),
-  })).filter(g => g.agents.length > 0);
-
-  const blockers = council.agents.filter(a => a.verdict === 'SOFT_BLOCK');
-  const running = council.agents.filter(a => a.verdict === 'RUNNING');
   const done = council.agents.filter(a => !['RUNNING', 'PENDING'].includes(a.verdict));
+  const running = council.agents.filter(a => a.verdict === 'RUNNING');
   const total = council.agents.length;
-
+  const hasBlocks = council.agents.some(a => a.verdict === 'SOFT_BLOCK');
   const canApprove = council.approved && !council.running && status !== 'approved';
+
+  const spin = {
+    display: 'inline-block', width: 8, height: 8,
+    border: '1.5px solid rgba(2,132,199,0.3)', borderTopColor: '#0284C7',
+    borderRadius: '50%', animation: 'linup-spin 0.7s linear infinite', flexShrink: 0,
+  } as React.CSSProperties;
+
+  // Extract key findings from agent outputs for the review table
+  const getKeyFindings = (agent: AgentResult): string[] => {
+    const lines = agent.output.split('\n').filter(l => l.trim());
+    // Find numbered items or bullet points
+    const findings = lines.filter(l =>
+      /^\d+\./.test(l.trim()) || l.trim().startsWith('- ') || l.trim().startsWith('* ')
+    ).slice(0, 4);
+    if (findings.length > 0) return findings.map(f => f.replace(/^[\d\.\-\*\s]+/, '').trim());
+    // Fallback: first 3 non-empty sentences
+    return lines.slice(0, 3).map(l => l.trim()).filter(l => l.length > 10);
+  };
 
   return (
     <div style={{
-      width: 260, borderLeft: '0.5px solid var(--color-border-tertiary)',
-      display: 'flex', flexDirection: 'column', flexShrink: 0,
-      background: '#FAFAFA', overflow: 'hidden',
+      width: 280, borderLeft: '0.5px solid var(--color-border-tertiary)',
+      display: 'flex', flexDirection: 'column', background: '#FAFAFA',
     }}>
 
-      {/* Header */}
-      <div style={{ padding: '14px 14px 10px', borderBottom: '0.5px solid #E2E8F0', flexShrink: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+      {/* Header with tab switcher */}
+      <div style={{ padding: '12px 14px 0', borderBottom: '0.5px solid #E2E8F0', flexShrink: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#1E293B', marginBottom: 10 }}>
           AI Council
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {council.running ? (
-            <>
-              <span style={{ display: 'inline-block', width: 8, height: 8, background: '#0284C7', borderRadius: '50%', animation: 'linup-pulse 1.5s ease-in-out infinite' }} />
-              <span style={{ fontSize: 12, color: '#0284C7' }}>{running.length} agent{running.length !== 1 ? 's' : ''} running...</span>
-            </>
-          ) : total === 0 ? (
-            <span style={{ fontSize: 12, color: '#94A3B8' }}>Waiting to start</span>
-          ) : (
-            <>
-              <span style={{ display: 'inline-block', width: 8, height: 8, background: council.approved ? '#16A34A' : '#DC2626', borderRadius: '50%' }} />
-              <span style={{ fontSize: 12, color: council.approved ? '#16A34A' : '#DC2626', fontWeight: 600 }}>
-                {council.gate_verdict || `${done.length}/${total} complete`}
-              </span>
-            </>
-          )}
-        </div>
+
+        {/* Progress summary */}
+        {council.running ? (
+          <div style={{ fontSize: 11, color: '#0284C7', display: 'flex', alignItems: 'center', gap: 5, marginBottom: 8 }}>
+            <span style={spin} />
+            {running.length > 0 ? (ACTIVITY_LABELS[running[0].agent_id] ?? 'Working...') : 'Starting...'}
+          </div>
+        ) : total > 0 ? (
+          <div style={{ fontSize: 11, fontWeight: 600, color: council.approved ? '#16A34A' : '#DC2626', marginBottom: 8 }}>
+            {council.approved ? '✓ All checks passed' : '⚠ Issues found — review before approving'}
+          </div>
+        ) : (
+          <div style={{ fontSize: 11, color: '#94A3B8', marginBottom: 8 }}>Waiting to start</div>
+        )}
+
+        {/* Progress bar */}
         {total > 0 && (
-          <div style={{ marginTop: 8, height: 3, background: '#E2E8F0', borderRadius: 2, overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${(done.length / total) * 100}%`, background: council.approved ? '#16A34A' : '#6366F1', transition: 'width 0.5s ease', borderRadius: 2 }} />
+          <div style={{ height: 3, background: '#E2E8F0', borderRadius: 2, marginBottom: 10 }}>
+            <div style={{ height: '100%', borderRadius: 2, transition: 'width 0.4s', width: `${(done.length / total) * 100}%`, background: council.approved ? '#16A34A' : council.running ? '#6366F1' : '#DC2626' }} />
+          </div>
+        )}
+
+        {/* Tab switcher — only show when council has run */}
+        {total > 0 && !council.running && (
+          <div style={{ display: 'flex', gap: 0, marginBottom: -1 }}>
+            {['progress', 'review'].map(tab => (
+              <button key={tab} onClick={() => setView(tab as 'progress' | 'review')}
+                style={{ flex: 1, padding: '6px 0', border: 'none', borderBottom: view === tab ? '2px solid #6366F1' : '2px solid transparent', background: 'transparent', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: view === tab ? '#6366F1' : '#94A3B8' }}>
+                {tab === 'progress' ? 'Status' : 'Review table'}
+              </button>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Blockers banner */}
-      {blockers.length > 0 && (
-        <div style={{ padding: '8px 14px', background: '#FEF3C7', borderBottom: '1px solid #FDE68A', fontSize: 12, color: '#92400E' }}>
-          ⚠ {blockers.length} soft block{blockers.length !== 1 ? 's' : ''} — review before approving
-        </div>
-      )}
+      {/* Content area */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
 
-      {/* Agent list */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 6px' }}>
-        {agentsByTier.map(({ tier, agents }) => (
-          <div key={tier}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: '#94A3B8', padding: '8px 8px 4px', letterSpacing: '0.06em' }}>
-              {TIER_LABEL[tier]}
-            </div>
-            {agents.map(agent => (
-              <AgentCard
-                key={agent.agent_id}
-                agentId={agent.agent_id}
-                role={agent.role}
-                tier={agent.tier}
-                provider={agent.provider}
-                model={agent.model}
-                verdict={agent.verdict}
-                output={agent.output}
-                onExpand={toggleExpand}
-                expanded={expanded === agent.agent_id}
-              />
-            ))}
+        {/* PROGRESS VIEW */}
+        {view === 'progress' && (
+          <div style={{ padding: '8px 10px' }}>
+            {hasBlocks && !council.running && (
+              <div style={{ padding: '8px 10px', background: '#FFFBEB', borderRadius: 6, fontSize: 11, color: '#92400E', marginBottom: 8 }}>
+                ⚠ Some issues need attention. Switch to Review table to see details.
+              </div>
+            )}
+            {council.agents.map(agent => {
+              const isRunning = agent.verdict === 'RUNNING';
+              const isDone = !['RUNNING', 'PENDING'].includes(agent.verdict);
+              const color = VERDICT_COLOR[agent.verdict] ?? '#CBD5E1';
+              const icon = VERDICT_ICON[agent.verdict] ?? '○';
+              const label = isDone ? (DONE_LABELS[agent.agent_id] ?? agent.role) : (ACTIVITY_LABELS[agent.agent_id] ?? 'Working...');
+              return (
+                <div key={agent.agent_id} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 4px', opacity: agent.verdict === 'PENDING' ? 0.4 : 1 }}>
+                  {isRunning ? <span style={spin} /> : <span style={{ color, fontSize: 10, fontWeight: 700, width: 10, flexShrink: 0 }}>{icon}</span>}
+                  <span style={{ flex: 1, fontSize: 11, color: isRunning ? '#0284C7' : isDone ? '#334155' : '#94A3B8', lineHeight: 1.4 }}>{label}</span>
+                  {isDone && agent.verdict !== 'PASS' && (
+                    <span style={{ fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 3, background: agent.verdict === 'SOFT_BLOCK' ? '#FEF3C7' : '#EEF2FF', color }}>
+                      {agent.verdict === 'SOFT_BLOCK' ? 'REVIEW' : 'NOTE'}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        ))}
+        )}
+
+        {/* REVIEW TABLE VIEW */}
+        {view === 'review' && total > 0 && !council.running && (
+          <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {council.agents.filter(a => a.verdict !== 'PENDING').map(agent => {
+              const findings = getKeyFindings(agent);
+              const isExpanded = expandedAgent === agent.agent_id;
+              const color = VERDICT_COLOR[agent.verdict] ?? '#CBD5E1';
+              return (
+                <div key={agent.agent_id} style={{ border: `0.5px solid ${agent.verdict === 'SOFT_BLOCK' ? '#FDE68A' : '#E2E8F0'}`, borderRadius: 8, overflow: 'hidden', background: agent.verdict === 'SOFT_BLOCK' ? '#FFFBEB' : '#fff' }}>
+                  {/* Agent header */}
+                  <button onClick={() => setExpandedAgent(isExpanded ? null : agent.agent_id)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color }}>{VERDICT_ICON[agent.verdict]}</span>
+                    <span style={{ flex: 1, fontSize: 11, fontWeight: 600, color: '#1E293B' }}>{DONE_LABELS[agent.agent_id] ?? agent.role}</span>
+                    <span style={{ fontSize: 10, color: '#94A3B8' }}>{isExpanded ? '▲' : '▼'}</span>
+                  </button>
+
+                  {/* Key findings summary — always visible */}
+                  {findings.length > 0 && (
+                    <div style={{ padding: '0 10px 8px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {findings.map((f, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 5, alignItems: 'flex-start', fontSize: 10, color: '#475569', lineHeight: 1.5 }}>
+                          <span style={{ color: '#94A3B8', flexShrink: 0, marginTop: 1 }}>·</span>
+                          <span>{f.length > 80 ? f.substring(0, 80) + '...' : f}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Full output when expanded */}
+                  {isExpanded && (
+                    <div style={{ padding: '8px 10px', borderTop: '0.5px solid #E2E8F0', background: '#F8FAFC', fontSize: 10, color: '#334155', whiteSpace: 'pre-wrap', lineHeight: 1.6, maxHeight: 200, overflowY: 'auto' }}>
+                      {agent.output}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Feedback input */}
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ fontSize: 11, color: '#475569', marginBottom: 6, fontWeight: 500 }}>
+                Your response to the council:
+              </div>
+              <textarea
+                value={feedback}
+                onChange={e => setFeedback(e.target.value)}
+                placeholder="Address any issues raised, clarify requirements, or ask for a specific revision..."
+                rows={4}
+                style={{ width: '100%', padding: '8px 10px', border: '1px solid #E2E8F0', borderRadius: 6, fontSize: 11, resize: 'vertical', fontFamily: 'system-ui', outline: 'none', boxSizing: 'border-box', lineHeight: 1.6 }}
+              />
+              <button
+                onClick={() => { if (feedback.trim()) { onRequestChanges(feedback); setFeedback(''); } }}
+                disabled={!feedback.trim()}
+                style={{ width: '100%', marginTop: 6, padding: '8px', background: feedback.trim() ? '#6366F1' : '#E4E4E0', color: feedback.trim() ? '#fff' : '#9B9B94', border: 'none', borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: feedback.trim() ? 'pointer' : 'not-allowed' }}>
+                Submit feedback for revision
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Gate scorecard + actions */}
+      {/* Actions */}
       {total > 0 && !council.running && (
-        <div style={{ padding: 12, borderTop: '0.5px solid #E2E8F0', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-
-          {council.gate_scorecard && (
-            <button onClick={() => setShowScorecard(s => !s)} style={{ padding: '7px 10px', background: '#F1F5F9', border: '0.5px solid #E2E8F0', borderRadius: 6, fontSize: 12, cursor: 'pointer', color: '#475569', fontWeight: 500 }}>
-              {showScorecard ? 'Hide' : 'View'} quality scorecard
-            </button>
-          )}
-
-          {showScorecard && council.gate_scorecard && (
-            <div style={{ padding: 10, background: '#fff', borderRadius: 6, border: '0.5px solid #E2E8F0', fontSize: 11, color: '#334155', whiteSpace: 'pre-wrap', maxHeight: 200, overflowY: 'auto', lineHeight: 1.6 }}>
-              {council.gate_scorecard}
-            </div>
-          )}
-
-          <button
-            onClick={onApprove}
-            disabled={!canApprove}
-            style={{ padding: '9px', background: canApprove ? '#16A34A' : '#E4E4E0', color: canApprove ? '#fff' : '#9B9B94', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: canApprove ? 'pointer' : 'not-allowed' }}
-          >
-            {status === 'approved' ? '✓ Approved' : '✓ Approve & continue'}
+        <div style={{ padding: '10px 12px', borderTop: '0.5px solid #E2E8F0', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <button onClick={onApprove} disabled={!canApprove}
+            style={{ padding: '9px', fontWeight: 700, fontSize: 12, border: 'none', borderRadius: 8, cursor: canApprove ? 'pointer' : 'not-allowed', background: canApprove ? '#16A34A' : '#E4E4E0', color: canApprove ? '#fff' : '#9B9B94' }}>
+            {status === 'approved' ? '✓ Approved' : '✓ Approve and continue'}
           </button>
-
-          <button
-            onClick={onRequestChanges}
-            style={{ padding: '9px', background: '#FFF7ED', color: '#C2410C', border: '1px solid #FED7AA', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-          >
-            Request changes
-          </button>
-
-          <button
-            onClick={onReject}
-            style={{ padding: '9px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-          >
-            Reject & redo
+          <button onClick={onReject}
+            style={{ padding: '7px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+            Reject and restart
           </button>
         </div>
       )}
