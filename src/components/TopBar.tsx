@@ -1,4 +1,4 @@
-import { LOGO_WORDMARK } from '../constants/logos';
+﻿import { LOGO_WORDMARK } from '../constants/logos';
 
 export default function TopBar() {
   return (
@@ -25,3 +25,4 @@ export default function TopBar() {
     </div>
   );
 }
+
