@@ -5,8 +5,8 @@ use tauri::Emitter;
 
 const DB_PATH: &str = "E:\\linup-io\\linup.db";
 const GROQ_BASE_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL_FAST: &str = "meta-llama/llama-3.1-8b-instruct:free";
-const MODEL_CAPABLE: &str = "meta-llama/llama-3.3-70b-instruct";
+const MODEL_FAST: &str = "meta-llama/llama-3.1-8b-instruct";
+const MODEL_CAPABLE: &str = "meta-llama/llama-3.3-70b-instruct:free";
 
 fn open_db() -> Result<Connection, String> {
     Connection::open(DB_PATH).map_err(|e| format!("DB error: {e}"))
