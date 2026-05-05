@@ -76,32 +76,27 @@ export default function StageWorkspaceScreen() {
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [messages, chatRunning]);
 
   const getKeys = async () => {
-    let ak = apiKey, ok = openaiKey;
-    if (!ak) { try { ak = await invoke<string>('get_secret', { service: 'linup-' + pid, key: 'ANTHROPIC_API_KEY' }); } catch { /* none */ } }
-    if (!ak) { setShowKeyInput(true); return null; }
-    if (!ok) { try { ok = await invoke<string>('get_secret', { service: 'linup-' + pid, key: 'OPENAI_API_KEY' }); } catch { /* none */ } }
-    if (ak) setApiKey(ak);
-    if (ok) setOpenaiKey(ok);
-    return { anthropic: ak, openai: ok };
+    const key = GROQ_API_KEY || apiKey;
+    if (!key) {
+      setError('Configuration error: service unavailable. Please reinstall LINUP.');
+      return null;
+    }
+    return key;
   };
 
-  const callAI = async (msgs: Message[], key: string) => {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+  const callAI = async (msgs: Message[], key: string): Promise<string> => {
+    const r = await fetch(GROQ_BASE_URL + '/chat/completions', {
       method: 'POST',
-      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1024, system: SYSTEM_PROMPT, messages: msgs.map(m => ({ role: m.role, content: m.content })) }),
+      headers: { 'Authorization': 'Bearer ' + key, 'content-type': 'application/json' },
+      body: JSON.stringify({ model: MODELS.FAST, max_tokens: 1024, messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...msgs.map(m => ({ role: m.role, content: m.content }))] }),
     });
     const d = await r.json();
     if (d.error) throw new Error(d.error.message);
-    return d.content?.[0]?.text ?? '';
+    return d.choices?.[0]?.message?.content ?? '';
   };
 
   const startChat = async () => {
-    const keys = await getKeys();
-    if (!keys) return;
-    setChatRunning(true);
-    try {
-      const reply = await callAI([{ role: 'user', content: 'I want to build an internal tool. I provided the name and description during setup. Please start our conversation.' }], keys.anthropic);
+    const key = await getKeys(); if (!key) return; setChatRunning(true); try { const reply = await callAI([{ role: 'user', content: 'I want to build an internal tool. I provided the name and description during setup. Please start our conversation.' }], key);
       setMessages([{ role: 'assistant', content: reply }]);
     } catch (e) { setError(String(e)); }
     setChatRunning(false);
@@ -115,23 +110,20 @@ export default function StageWorkspaceScreen() {
     const updated = [...messages, { role: 'user' as const, content: text }];
     setMessages(updated); setInput(''); setChatRunning(true); setError(null);
     try {
-      const reply = await callAI(updated, keys.anthropic);
+      const reply = await callAI(updated, key);
       setMessages([...updated, { role: 'assistant', content: reply }]);
     } catch (e) { setError(String(e)); }
     setChatRunning(false);
   };
 
   const runCouncil = async () => {
-    const keys = await getKeys();
-    if (!keys) return;
-    setCouncilRunning(true);
+    const key = await getKeys(); if (!key) return; setCouncilRunning(true);
     setCouncil({ agents: [], gate_verdict: '', gate_scorecard: '', approved: false, running: true });
     setError(null);
-    const brief = messages.map(m => (m.role === 'user' ? 'User: ' : 'LINUP: ') + m.content).join('\n\n');
-    try {
+    const brief = messages.map(m => (m.role === 'user' ? 'User: ' : 'LINUP: ') + m.content).join('\n\n'); try {
       const result = await invoke<{ agents: AgentResult[]; gate_verdict: string; gate_scorecard: string; approved: boolean; }>('run_council', {
         projectId: pid, stageIndex: currentStage, userBrief: brief,
-        apiKeys: { anthropic: keys.anthropic, openai: keys.openai || null, google: null },
+        apiKeys: { groq: key },
       });
       setCouncil({ ...result, running: false });
       await loadStage(currentStage);
