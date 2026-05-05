@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { LOGO_WORDMARK } from '../constants/logos';
 
 export default function AuthScreen() {
-  useAuth();
+  const { debugLog } = useAuth();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -183,6 +183,7 @@ export default function AuthScreen() {
     </div>
   );
 }
+
 
 
 
