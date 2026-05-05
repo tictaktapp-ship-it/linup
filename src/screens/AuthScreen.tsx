@@ -72,7 +72,7 @@ export default function AuthScreen() {
 
   if (sent) {
     return (
-      <div style={{ display: 'flex', height: '100vh', maxWidth: 1400, margin: '0 auto', background: 'var(--color-bg-primary)' }}>
+      <div style={{ display: 'flex', height: '100vh', width: '100%', background: 'var(--color-bg-primary)' }}>
         {leftPanel}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
           <div style={{ maxWidth: 380, width: '100%', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
@@ -94,7 +94,7 @@ export default function AuthScreen() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', maxWidth: 1400, margin: '0 auto', background: 'var(--color-bg-primary)' }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100%', background: 'var(--color-bg-primary)' }}>
       {leftPanel}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, background: '#F8FAFC' }}>
         <div style={{ maxWidth: 380, width: '100%', display: 'flex', flexDirection: 'column', gap: 24 }}>

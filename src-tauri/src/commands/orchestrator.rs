@@ -380,7 +380,7 @@ pub async fn run_council(
     let run_id = uuid::Uuid::new_v4().to_string();
     let status = if approved { "awaiting_approval" } else { "gate_failed" };
     db.execute(
-        "INSERT INTO stage_runs (id, project_id, stage_index, status, created_at, updated_at) VALUES (?1,?2,?3,?4,?5,?5)",
+        "INSERT INTO stage_runs (id, project_id, stage_index, status, started_at) VALUES (?1,?2,?3,?4,?5)",
         params![run_id, project_id, stage_index, status, created_at],
     ).map_err(|e| e.to_string())?;
 

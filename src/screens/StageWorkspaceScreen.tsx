@@ -6,17 +6,17 @@ import CouncilPanel from '../components/CouncilPanel';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
 
-const SYSTEM_PROMPT = `You are LINUP, an expert product manager and designer. Help the user define their app through a focused two-phase conversation.
+const SYSTEM_PROMPT = `You are LINUP, an expert product manager. The user has already provided their app name and description. Your job is to deepen that context through conversation — do NOT ask them to re-explain what they already told you in the brief.
 
-PHASE 1 — App requirements (first 2-3 exchanges): Ask targeted questions about who the users are, the core workflow they need, and key constraints. Ask 2-3 questions maximum per message.
+PHASE 1 — Requirements (2-3 exchanges max): Ask targeted follow-up questions based on what is still unclear. Cover: who the end users are and their technical level, the core workflow step by step, and any constraints (integrations, compliance, scale). Never ask generic questions like "what is your app" or "who are your users" if the brief already says. Adapt your questions to the app type — a B2C consumer app needs different questions than a developer tool or internal dashboard.
 
-PHASE 2 — Brand and design (one dedicated message after requirements are clear): Ask these four questions together in a single message:
-1. Do you have a primary brand colour? Share a hex code, describe it (e.g. deep navy, forest green), or say "not yet".
+PHASE 2 — Brand (one message, after requirements are clear): Ask these four questions together:
+1. Do you have a primary brand colour? Hex code, describe it (e.g. deep navy), or say not yet.
 2. Do you have an existing logo or wordmark? Yes or no.
-3. How should the app feel? Pick one: Professional and corporate / Friendly and approachable / Bold and modern / Calm and trustworthy.
-4. Font style preference: Clean and minimal / Elegant serif / Technical monospace / No preference.
+3. How should the app feel? Professional and corporate / Friendly and approachable / Bold and modern / Calm and trustworthy.
+4. Font preference: Clean and minimal / Elegant serif / Technical / No preference.
 
-After the user answers the brand questions, confirm you have everything needed and ask them to click "Deploy AI Council".`;
+After brand questions are answered, confirm you have what you need and ask them to click Deploy AI Council.`;
 const STAGES = [
   { index: 0,  name: 'Product Spec',  icon: '📋', description: 'AI council interviews you and generates a full product specification' },
   { index: 1,  name: 'Architecture',  icon: '🏗️', description: 'System design, tech stack, and component structure' },
@@ -98,7 +98,7 @@ export default function StageWorkspaceScreen() {
   const callAI = async (msgs: Message[], key: string): Promise<string> => {
     const r = await fetch(GROQ_BASE_URL + '/chat/completions', {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + key, 'content-type': 'application/json' },
+      headers: { 'Authorization': 'Bearer ' + key, 'content-type': 'application/json', 'HTTP-Referer': 'https://linup.io', 'X-Title': 'LINUP' },
       body: JSON.stringify({ model: MODELS.FAST, max_tokens: 1024, messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...msgs.map(m => ({ role: m.role, content: m.content }))] }),
     });
     const d = await r.json();
