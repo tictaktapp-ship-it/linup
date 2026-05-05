@@ -25,12 +25,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [callbackPort, setCallbackPort] = useState<number | null>(null);
 
   const fetchUser = (id: string, email: string) => {
-    // Set user immediately from session data — never block on DB
-    const u: LinupUser = { id, email, plan: 'free' };
-    setUser(u);
+    // Set user immediately from session — never block on DB query
+    setUser({ id, email, plan: 'free' });
     setLoading(false);
-    // Sync to DB in background — do not await, do not block
-    supabase.from('users').upsert({ id, email, plan: 'free' }, { onConflict: 'id' }).catch(() => {});
+    // Sync to DB in background — fire and forget
+    void supabase.from('users').upsert({ id, email, plan: 'free' }, { onConflict: 'id' });
   };
 
   const handleCallbackUrl = async (url: string) => {
@@ -44,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) console.error('[AUTH] exchange error:', error.message);
         return;
       }
-      // Fallback: check if session exists after redirect
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) fetchUser(session.user.id, session.user.email ?? '');
     } catch (e) {
@@ -53,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Check for existing session on startup
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchUser(session.user.id, session.user.email ?? '');
@@ -62,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[AUTH] state change:', event, session?.user?.email ?? 'null');
       if (session?.user) {
@@ -73,7 +69,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    // Start local HTTP callback server
     invoke<number>('start_auth_callback_server')
       .then(port => {
         console.log('[AUTH] callback server on port:', port);
@@ -81,10 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch(e => console.error('[AUTH] server start error:', e));
 
-    // Listen for auth-callback event emitted by Rust when callback URL is received
     const unlistenPromise = listen<{ url: string }>('auth-callback', event => {
       console.log('[AUTH] callback event:', event.payload.url);
-      handleCallbackUrl(event.payload.url);
+      void handleCallbackUrl(event.payload.url);
     });
 
     return () => {
