@@ -139,6 +139,7 @@ pub fn run() {
     Ok(())
 })
 .invoke_handler(tauri::generate_handler![
+            commands::spec_council::run_spec_council,
             commands::stage::get_project,
             commands::orchestrator::get_council_result,
             commands::orchestrator::run_council,
