@@ -24,32 +24,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [callbackPort, setCallbackPort] = useState<number | null>(null);
 
-  const fetchUser = async (id: string, email: string) => {
-    // Always set a fallback immediately so we never hang on Loading...
-    const fallback: LinupUser = { id, email, plan: 'free' };
-
-    try {
-      // Race against a 5 second timeout
-      const result = await Promise.race([
-        supabase.from('users').select('id, email, plan').eq('id', id).single(),
-        new Promise<{ data: null; error: Error }>((_, reject) =>
-          setTimeout(() => reject(new Error('timeout')), 5000)
-        ),
-      ]);
-
-      const { data, error } = result as { data: LinupUser | null; error: unknown };
-
-      if (data) {
-        setUser(data);
-      } else {
-        // Try to insert — if it fails (e.g. already exists) that is fine
-        await supabase.from('users').upsert({ id, email, plan: 'free' }, { onConflict: 'id' });
-        setUser(fallback);
-      }
-    } catch {
-      // On any error or timeout, let the user in with free plan
-      setUser(fallback);
-    }
+  const fetchUser = (id: string, email: string) => {
+    // Set user immediately from auth session data — never block on DB
+    setUser({ id, email, plan: "free" });
+    setLoading(false);
+    // Sync to DB in background
+    supabase.from("users").upsert({ id, email, plan: "free" }, { onConflict: "id" }).catch(() => {});
+  };
     setLoading(false);
   };
 
@@ -128,3 +109,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export const useAuth = () => useContext(AuthContext);
+
