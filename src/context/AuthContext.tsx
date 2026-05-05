@@ -38,6 +38,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleAuthUrl = async (url: string) => {
     log('URL received: ' + url);
+const finalizeAuth = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  log('finalizeAuth session: ' + (session ? 'user=' + session.user.email : 'null'));
+  if (session?.user) {
+    await fetchUser(session.user.id, session.user.email ?? '');
+  } else {
+    setLoading(false);
+  }
+};
     try {
       const urlObj = new URL(url);
       const qp = urlObj.searchParams;
@@ -55,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
         if (error) log('setSession error: ' + error.message);
         else log('setSession success');
+        await finalizeAuth();
         return;
       }
 
@@ -65,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) log('exchangeCode error: ' + error.message);
         else log('exchangeCode success');
+        await finalizeAuth();
         return;
       }
 
@@ -76,6 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
         if (error) log('verifyOtp error: ' + error.message);
         else log('verifyOtp success');
+        await finalizeAuth();
         return;
       }
 
@@ -87,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.verifyOtp({ token, type: type as 'signup' | 'magiclink', email });
         if (error) log('verifyOtp legacy error: ' + error.message);
         else log('verifyOtp legacy success');
+        await finalizeAuth();
         return;
       }
 
@@ -138,6 +151,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return <AuthContext.Provider value={{ user, loading, debugLog, signOut }}>{children}</AuthContext.Provider>;
 }
+
+
+
+
 
 
 
