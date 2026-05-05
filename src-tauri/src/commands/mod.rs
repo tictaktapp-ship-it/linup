@@ -13,3 +13,4 @@ pub mod updater;
 pub mod project;
 pub mod auth_callback;
 pub mod stage_runner;
+pub mod orchestrator;
