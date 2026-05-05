@@ -36,13 +36,13 @@ export default function AuthScreen() {
   }
 
   const leftPanel = (
-    <div style={{ flexBasis: '60%', width: '60%', minWidth: 420, background: 'var(--color-accent-primary)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '40px 36px', flexShrink: 0 }}>
+    <div style={{ flexBasis: '60%', width: '60%', minWidth: 420, background: 'var(--color-bg-primary)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '40px 36px', flexShrink: 0 }}>
       <div>
-        <img src={LOGO_WORDMARK} alt='LINUP' style={{ height: 28, marginBottom: 48, filter: 'brightness(0) invert(1)', objectFit: 'contain', objectPosition: 'left', display: 'block' }} />
-        <div style={{ fontSize: 22, fontWeight: 700, color: '#F1F5F9', lineHeight: 1.35, marginBottom: 12 }}>
+        <img src={LOGO_WORDMARK} alt='LINUP' style={{ height: 28, marginBottom: 48, objectFit: 'contain', objectPosition: 'left', display: 'block' }} />
+        <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.35, marginBottom: 12 }}>
           Build and ship internal tools without the overhead
         </div>
-        <div style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.7, marginBottom: 32 }}>
+        <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: 32 }}>
           Turn any idea into a deployed, production-ready web app in 11 guided stages.
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -52,18 +52,18 @@ export default function AuthScreen() {
             'No coding required',
             'First app is always free',
           ].map(v => (
-            <div key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: '#94A3B8' }}>
+            <div key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: 'var(--color-text-secondary)' }}>
               <span style={{ color: 'var(--color-accent-primary)', fontSize: 15, flexShrink: 0, marginTop: 1 }}>&#10003;</span>
               <span>{v}</span>
             </div>
           ))}
         </div>
       </div>
-      <div style={{ borderTop: '1px solid #1E293B', paddingTop: 20, marginTop: 32 }}>
-        <div style={{ fontSize: 12, color: '#475569', lineHeight: 1.6, fontStyle: 'italic' }}>
+      <div style={{ borderTop: '1px solid var(--color-border-primary)', paddingTop: 20, marginTop: 32 }}>
+        <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', lineHeight: 1.6, fontStyle: 'italic' }}>
           &ldquo;LINUP saved our team months of development time. We shipped our internal billing tool in a week.&rdquo;
         </div>
-        <div style={{ fontSize: 11, color: '#334155', marginTop: 8, fontWeight: 500 }}>
+        <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 8, fontWeight: 500 }}>
           Early access team
         </div>
       </div>
@@ -89,12 +89,6 @@ export default function AuthScreen() {
               Use a different email
             </button>
           </div>
-      {/* DEBUG PANEL - remove before launch */}
-      {debugLog.length > 0 && (
-        <div style={{ position: 'fixed', bottom: 0, right: 0, width: 500, maxHeight: 200, overflowY: 'auto', background: '#000', color: '#0f0', fontSize: 10, fontFamily: 'monospace', padding: 8, zIndex: 9999 }}>
-          {debugLog.map((l, i) => <div key={i}>{l}</div>)}
-        </div>
-      )}
 
         </div>
       </div>
@@ -170,31 +164,26 @@ export default function AuthScreen() {
             </button>
           </div>
 
-          <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', lineHeight: 1.7 }}>
+          <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', lineHeight: 1.7 }}>
             By continuing, you agree to our{' '}
             <a href='https://linup.io/terms' target='_blank' rel='noopener noreferrer' style={{ color: 'var(--color-accent-primary)', textDecoration: 'none' }}>Terms &amp; Conditions</a>
             {' '}and{' '}
             <a href='https://linup.io/privacy' target='_blank' rel='noopener noreferrer' style={{ color: 'var(--color-accent-primary)', textDecoration: 'none' }}>Privacy Policy</a>.
           </div>
 
-          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 14, fontSize: 11, color: 'var(--color-text-tertiary)', lineHeight: 1.7 }}>
+          <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 14, fontSize: 10, color: 'var(--color-text-tertiary)', lineHeight: 1.7 }}>
             <strong style={{ color: 'var(--color-text-secondary)' }}>Free to build.</strong>
             {' '}Payment only at first export \u2014 to verify your identity, not to charge you.
             Your first app export is free. You only pay when starting a second project or upgrading your plan.
           </div>
 
         </div>
-      {/* DEBUG PANEL - remove before launch */}
-      {debugLog.length > 0 && (
-        <div style={{ position: 'fixed', bottom: 0, right: 0, width: 500, maxHeight: 200, overflowY: 'auto', background: '#000', color: '#0f0', fontSize: 10, fontFamily: 'monospace', padding: 8, zIndex: 9999 }}>
-          {debugLog.map((l, i) => <div key={i}>{l}</div>)}
-        </div>
-      )}
 
       </div>
     </div>
   );
 }
+
 
 
 
