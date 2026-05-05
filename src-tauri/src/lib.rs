@@ -1,4 +1,6 @@
 mod commands;
+use tauri::Emitter;
+use tauri::Manager;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -107,7 +109,25 @@ pub fn run() {
                 ])
                 .build()
         )
-        .invoke_handler(tauri::generate_handler![
+        .setup(|app| {
+    // If the app was launched via a protocol handler, Windows passes the URL as a process arg.
+    // Capture the first linup:// URL arg and forward it into the webview.
+    let url_arg = std::env::args().find(|a| a.starts_with("linup://"));
+    if let Some(url) = url_arg {
+        // Emit after the main window exists.
+        if let Some(window) = app.get_webview_window("main") {
+            let _ = window.emit("linup://deep-link", url);
+        } else {
+            // Fallback: emit to all windows if "main" isn't found yet.
+            for (_label, w) in app.webview_windows() {
+                let _ = w.emit("linup://deep-link", url.clone());
+            }
+        }
+    }
+    Ok(())
+})
+.invoke_handler(tauri::generate_handler![
+            commands::auth_callback::start_auth_callback_server,
             commands::project::create_project,
             commands::updater::get_update_history,
             commands::updater::set_update_channel,
@@ -184,3 +204,5 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+
