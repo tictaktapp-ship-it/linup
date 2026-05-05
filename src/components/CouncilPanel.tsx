@@ -37,6 +37,10 @@ const ACTIVITY_LABELS: Record<string, string> = {
   gdpr:             'Reviewing privacy compliance',
   innovator:        'Exploring better approaches',
   business_analyst: 'Validating the business case',
+  market_researcher: 'Researching the market and competitors',
+  ethics_officer:   'Reviewing ethical considerations',
+  financial_advisor: 'Assessing financial viability',
+  debugging_engineer: 'Checking for technical risks',
   quality_gate:     'Running final quality checks',
 };
 
@@ -50,6 +54,10 @@ const DONE_LABELS: Record<string, string> = {
   gdpr:             'Privacy review complete',
   innovator:        'Alternatives explored',
   business_analyst: 'Business case validated',
+  market_researcher: 'Market research complete',
+  ethics_officer:   'Ethics review complete',
+  financial_advisor: 'Financial assessment complete',
+  debugging_engineer: 'Technical risk review complete',
   quality_gate:     'Quality checks complete',
 };
 

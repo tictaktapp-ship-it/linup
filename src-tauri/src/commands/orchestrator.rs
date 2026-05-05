@@ -339,12 +339,33 @@ pub async fn run_council(
         &review_input, key, &app, &project_id, stage_index).await;
     results.push(business_analyst.clone());
 
+    // ── NEW AGENTS ────────────────────────────────────────────────────────────
+    let market_researcher = run_agent("market_researcher", "Market Researcher", 2, MODEL_CAPABLE,
+        "You are a market research analyst. For this app concept: (1) name specific existing competing solutions and their weaknesses, (2) estimate realistic market size, (3) explain why users would switch from existing solutions, (4) give pricing benchmarks. Rate opportunity: STRONG, MODERATE, or WEAK.",
+        &review_input, key, &app, &project_id, stage_index).await;
+    results.push(market_researcher.clone());
+
+    let ethics_officer = run_agent("ethics_officer", "Ethics Officer", 2, MODEL_CAPABLE,
+        "You are an ethics and fairness officer. Review for: (1) data handling of vulnerable groups, (2) discrimination or exclusion risks, (3) algorithmic bias, (4) monetisation ethics, (5) misuse potential. Rate each finding LOW, MEDIUM, HIGH, or CRITICAL.",
+        &review_input, key, &app, &project_id, stage_index).await;
+    results.push(ethics_officer.clone());
+
+    let financial_advisor = run_agent("financial_advisor", "Financial Advisor", 3, MODEL_CAPABLE,
+        "You are a product financial advisor. Assess: (1) revenue model viability for this market, (2) realistic user acquisition cost, (3) estimated user lifetime value, (4) break-even scale, (5) hidden infrastructure costs. Verdict: VIABLE, MARGINAL, or UNVIABLE.",
+        &review_input, key, &app, &project_id, stage_index).await;
+    results.push(financial_advisor.clone());
+
+    let debugging_engineer = run_agent("debugging_engineer", "Debugging Engineer", 2, MODEL_CAPABLE,
+        "You are a senior technical risk engineer. Identify: (1) features that sound simple but are technically hard (real-time sync, search, payments, file handling), (2) known failure patterns for this app type, (3) scope that will cost 3x more than expected, (4) missing technical requirements that will cause problems later. Rate each risk LOW, MEDIUM, HIGH, or CRITICAL.",
+        &review_input, key, &app, &project_id, stage_index).await;
+    results.push(debugging_engineer.clone());
+
     let gate_input = format!(
         "Spec:\n{}\n\nDevil's Advocate:\n{}\n\nRealist:\n{}\n\nSecurity:\n{}\n\nBusiness Analyst:\n{}",
         spec, devils_advocate.output, realist.output, security.output, business_analyst.output
     );
     let quality_gate = run_agent("quality_gate", "Quality Gate", 1, MODEL_CAPABLE,
-        "Score 9 criteria PASS/FAIL with evidence: (1) Problem defined, (2) Users identified, (3) 5+ user stories, (4) Testable criteria, (5) Technical constraints, (6) Security requirements, (7) No unresolved CRITICAL, (8) Business case sound, (9) Scope realistic. Final verdict: APPROVED, CONDITIONAL, or BLOCKED. Format as markdown table.",
+        "You are the final quality gate. Produce a structured report in exactly this format:\n\n## EXECUTIVE SUMMARY\n3-4 sentences summarising what the council thinks overall about this app concept in plain English.\n\n## QUESTIONS REQUIRING ANSWERS\nA numbered list of specific questions the council needs answered before approving. Only include genuine blockers.\n\n## RECOMMENDATIONS\nFor each major finding, one paragraph with the recommendation and reasoning.\n\n## SCORECARD\n| Criterion | Status | Evidence |\n|---|---|---|\nScore: (1) Problem defined, (2) Users identified, (3) 5+ user stories, (4) Testable criteria, (5) Technical constraints, (6) Security addressed, (7) Market viable, (8) Ethics cleared, (9) Financially sound, (10) No unresolved CRITICALs.\n\n## VERDICT\nAPPROVED, CONDITIONAL, or BLOCKED — with one sentence explanation.",
         &gate_input, key, &app, &project_id, stage_index).await;
     results.push(quality_gate.clone());
 
