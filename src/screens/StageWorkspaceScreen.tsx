@@ -175,7 +175,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
 
       <div style={{ width: 192, background: '#0C0C0E', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
-        <div style={{ padding: '16px 14px 8px', fontSize: 10, fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Pipeline</div>
+        <div style={{ padding: '16px 14px 8px', fontSize: 10, fontWeight: 600, color: '#6B7E96', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Pipeline</div>
         {STAGES.map(stage => {
           const isActive = stage.index === currentStage;
           const isDone = stage.index < currentStage;
@@ -183,7 +183,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
             <button key={stage.index} onClick={() => { setCurrentStage(stage.index); setMessages([]); setStageStatus(null); setCouncil(makeEmptyCouncil()); }}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', border: 'none', background: isActive ? '#1E293B' : 'transparent', cursor: 'pointer', textAlign: 'left', borderLeft: isActive ? '3px solid var(--color-brand)' : '3px solid transparent' }}>
               <span style={{ fontSize: 14, flexShrink: 0 }}>{stage.icon}</span>
-              <span style={{ fontSize: 12, color: isDone ? '#52B788' : isActive ? '#F1F5F9' : '#475569', fontWeight: isActive ? 600 : 400 }}>{stage.index + 1}. {stage.name}</span>
+              <span style={{ fontSize: 13, color: isDone ? '#52B788' : isActive ? '#F1F5F9' : '#8B9DB5', fontWeight: isActive ? 600 : 400 }}>{stage.index + 1}. {stage.name}</span>
               {isDone && <span style={{ marginLeft: 'auto', color: '#22C55E', fontSize: 12 }}>&#10003;</span>}
             </button>
           );

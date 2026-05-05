@@ -13,9 +13,24 @@ export default function TopBar() {
       flexShrink: 0,
       width: '100%',
     }}>
-      <img src={LOGO_WORDMARK} alt='LINUP' style={{ height: 20 }} />
+      {/* Logo — mix-blend-mode multiply removes the black background from the PNG */}
+      <img
+        src={LOGO_WORDMARK}
+        alt='LINUP'
+        style={{
+          height: 22,
+          mixBlendMode: 'multiply',
+          filter: 'brightness(0) saturate(100%) invert(12%) sepia(80%) saturate(5000%) hue-rotate(270deg) brightness(70%)',
+          objectFit: 'contain',
+        }}
+      />
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', cursor: 'pointer' }}>
+        <span style={{
+          fontSize: 12,
+          color: 'var(--color-text-tertiary)',
+          cursor: 'pointer',
+          letterSpacing: '0.02em',
+        }}>
           Settings
         </span>
         <div style={{
