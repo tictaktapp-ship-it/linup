@@ -21,3 +21,5 @@ DATABASE_URL=postgresql://postgres:3u4n-P4ll15t3r@db.qspqtckbtnemayrseyjg.supaba
 
 # Resend 
 RESEND_API_KEY=re_6pqKdvdV_MjajpUW4KJDMRrTEwpSQ9cHj
+
+OPENROUTER_API_KEY=<stored in GitHub secrets — do not put key here>

@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
-import { GROQ_API_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
+import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
 
 const SYSTEM_PROMPT = `You are LINUP, an expert product manager and designer. Help the user define their app through a focused two-phase conversation.
@@ -87,7 +87,7 @@ export default function StageWorkspaceScreen() {
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [messages, chatRunning]);
 
   const getKeys = async () => {
-    const key = GROQ_API_KEY || apiKey;
+    const key = OPENROUTER_KEY || GROQ_API_KEY || apiKey;
     if (!key) {
       setError('Configuration error: service unavailable. Please reinstall LINUP.');
       return null;

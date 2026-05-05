@@ -4,9 +4,9 @@ use tauri::AppHandle;
 use tauri::Emitter;
 
 const DB_PATH: &str = "E:\\linup-io\\linup.db";
-const GROQ_BASE_URL: &str = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL_FAST: &str = "llama-3.1-8b-instant";
-const MODEL_CAPABLE: &str = "llama-3.3-70b-versatile";
+const GROQ_BASE_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL_FAST: &str = "meta-llama/llama-3.1-8b-instruct:free";
+const MODEL_CAPABLE: &str = "meta-llama/llama-3.3-70b-instruct";
 
 fn open_db() -> Result<Connection, String> {
     Connection::open(DB_PATH).map_err(|e| format!("DB error: {e}"))
@@ -140,6 +140,8 @@ async fn call_groq(api_key: &str, model: &str, system: &str, user_message: &str)
         .post(GROQ_BASE_URL)
         .header("Authorization", format!("Bearer {}", api_key))
         .header("content-type", "application/json")
+        .header("HTTP-Referer", "https://linup.io")
+        .header("X-Title", "LINUP")
         .json(&body)
         .send()
         .await
