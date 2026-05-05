@@ -24,11 +24,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [callbackPort, setCallbackPort] = useState<number | null>(null);
 
-  const fetchUser = (id: string, email: string) => {
-    // Set user immediately from session — never block on DB query
+  const signIn = (id: string, email: string) => {
     setUser({ id, email, plan: 'free' });
     setLoading(false);
-    // Sync to DB in background — fire and forget
     void supabase.from('users').upsert({ id, email, plan: 'free' }, { onConflict: 'id' });
   };
 
@@ -38,50 +36,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const urlObj = new URL(url);
       const code = urlObj.searchParams.get('code');
       if (code) {
-        console.log('[AUTH] exchanging PKCE code...');
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) console.error('[AUTH] exchange error:', error.message);
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) { console.error('[AUTH] exchange error:', error.message); return; }
+        if (data.session?.user) signIn(data.session.user.id, data.session.user.email ?? '');
         return;
       }
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) fetchUser(session.user.id, session.user.email ?? '');
+      if (session?.user) signIn(session.user.id, session.user.email ?? '');
     } catch (e) {
       console.error('[AUTH] handleCallbackUrl error:', e);
     }
   };
 
   useEffect(() => {
+    // Hard timeout — never stay on Loading... for more than 4 seconds
+    const timeout = setTimeout(() => {
+      console.log('[AUTH] timeout — forcing loading=false');
+      setLoading(false);
+    }, 4000);
+
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[AUTH] initial session:', session?.user?.email ?? 'null');
+      clearTimeout(timeout);
       if (session?.user) {
-        fetchUser(session.user.id, session.user.email ?? '');
+        signIn(session.user.id, session.user.email ?? '');
       } else {
         setLoading(false);
       }
+    }).catch(e => {
+      console.error('[AUTH] getSession error:', e);
+      clearTimeout(timeout);
+      setLoading(false);
     });
 
+    // Auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[AUTH] state change:', event, session?.user?.email ?? 'null');
       if (session?.user) {
-        fetchUser(session.user.id, session.user.email ?? '');
+        signIn(session.user.id, session.user.email ?? '');
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setLoading(false);
       }
     });
 
+    // Start local HTTP callback server
     invoke<number>('start_auth_callback_server')
-      .then(port => {
-        console.log('[AUTH] callback server on port:', port);
-        setCallbackPort(port);
-      })
+      .then(port => { console.log('[AUTH] callback server on port:', port); setCallbackPort(port); })
       .catch(e => console.error('[AUTH] server start error:', e));
 
+    // Listen for auth-callback event from Rust
     const unlistenPromise = listen<{ url: string }>('auth-callback', event => {
       console.log('[AUTH] callback event:', event.payload.url);
       void handleCallbackUrl(event.payload.url);
     });
 
     return () => {
+      clearTimeout(timeout);
       subscription.unsubscribe();
       unlistenPromise.then(fn => fn());
     };
@@ -90,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setLoading(false);
   };
 
   return (
