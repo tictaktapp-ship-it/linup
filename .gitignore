@@ -13,3 +13,7 @@ linup-updater.key
 linup-updater.key.pub
 *.key
 *.key.pub
+
+# Secret env vars — never commit
+LINUP Env Vars.txt
+*.env.local*
