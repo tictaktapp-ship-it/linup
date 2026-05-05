@@ -1,81 +1,85 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import Step1 from './onboarding/Step1';
-import Step2 from './onboarding/Step2';
-import Step3 from './onboarding/Step3';
-import Step4 from './onboarding/Step4';
-import Step5 from './onboarding/Step5';
-import Step6 from './onboarding/Step6';
+import { open } from '@tauri-apps/plugin-dialog';
 
-const TOTAL = 6;
-
-const OnboardingFlow: React.FC = () => {
+export default function OnboardingFlow() {
   const [step, setStep] = useState(1);
-  const [data, setData] = useState<Record<string, unknown>>({});
-  const [saving, setSaving] = useState(false);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [folder, setFolder] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
-  const onNext = async (stepData?: Record<string, unknown>) => {
-    const merged = { ...data, ...stepData };
-    if (stepData) setData(merged);
+  const pickFolder = async () => {
+    try {
+      const selected = await open({ directory: true, multiple: false });
+      if (typeof selected === 'string') setFolder(selected);
+    } catch { /* ignore */ }
+  };
 
-    if (step < TOTAL) {
-      setStep(s => s + 1);
-      return;
-    }
-
-    // Final step — save project to DB then navigate to stage workspace
-    setSaving(true);
-    setError(null);
+  const handleCreate = async () => {
+    if (!folder) { setError('Please select a folder for your project.'); return; }
+    setCreating(true); setError(null);
     try {
       const projectId = await invoke<string>('create_project', {
-        name: (merged.name as string) || 'My App',
-        description: (merged.description as string) || '',
-        folderPath: (merged.folder as string) || 'C:\\Projects\\my-app',
-        stack: (merged.stack as string) || 'web',
-        budgetCap: (merged.budgetCap as number) || 10.0,
+        name,
+        description,
+        folderPath: folder,
+        stack: 'web',
+        budgetCap: 10.0,
       });
       window.location.hash = '/project/' + projectId + '/stage/0';
     } catch (e) {
       setError('Failed to create project: ' + String(e));
-      setSaving(false);
+      setCreating(false);
     }
   };
 
-  const onBack = () => setStep(s => Math.max(1, s - 1));
+  const card: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 20, padding: '48px 40px', maxWidth: 520, margin: '40px auto 0', width: '100%' };
+  const label: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6, display: 'block' };
+  const input: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', borderRadius: 8, fontSize: 14, background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', outline: 'none', boxSizing: 'border-box' };
+  const btn = (accent = false): React.CSSProperties => ({ flex: accent ? 2 : 1, padding: '11px', borderRadius: 8, border: accent ? 'none' : '0.5px solid var(--color-border-tertiary)', background: accent ? '#6366F1' : 'transparent', color: accent ? '#fff' : 'var(--color-text-primary)', fontWeight: 600, cursor: 'pointer', fontSize: 14 });
+
+  if (step === 1) return (
+    <div style={card}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 8 }}>What are you building?</div>
+        <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>Give LINUP a brief description and it will ask you the right questions to build a complete spec.</div>
+      </div>
+      <div>
+        <label style={label}>App name</label>
+        <input style={input} placeholder='e.g. Internal leave tracker' value={name} onChange={e => setName(e.target.value)} />
+      </div>
+      <div>
+        <label style={label}>Describe your app in a few sentences</label>
+        <textarea style={{ ...input, resize: 'vertical', minHeight: 100, fontFamily: 'system-ui' }} placeholder='e.g. A web app for our team to request and approve annual leave. Managers need to see a calendar view and approve or reject requests...' value={description} onChange={e => setDescription(e.target.value)} />
+      </div>
+      <button disabled={!name.trim() || !description.trim()} onClick={() => setStep(2)} style={btn(true)}>
+        Continue &rarr;
+      </button>
+    </div>
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ padding: '20px 32px 0', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
-          {Array.from({ length: TOTAL }, (_, i) => (
-            <React.Fragment key={i}>
-              <div style={{
-                width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, fontWeight: 600, flexShrink: 0,
-                background: i + 1 < step ? '#16A34A' : i + 1 === step ? '#1D4ED8' : '#E4E4E0',
-                color: i + 1 <= step ? '#fff' : '#9B9B96',
-              }}>
-                {i + 1 < step ? String.fromCharCode(10003) : i + 1}
-              </div>
-              {i < TOTAL - 1 && <div style={{ flex: 1, height: 2, background: i + 1 < step ? '#16A34A' : '#E4E4E0' }} />}
-            </React.Fragment>
-          ))}
-          <span style={{ marginLeft: 8, fontSize: 13, color: '#6B6B66', flexShrink: 0 }}>Step {step} of {TOTAL}</span>
+    <div style={card}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 8 }}>Where should we save your project?</div>
+        <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>LINUP saves all generated code and artifacts to a local folder on your machine.</div>
+      </div>
+      <div>
+        <label style={label}>Project folder</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input style={{ ...input, flex: 1 }} placeholder='No folder selected' value={folder} readOnly />
+          <button onClick={pickFolder} style={{ padding: '10px 16px', border: '1px solid var(--color-border-tertiary)', borderRadius: 8, background: 'var(--color-bg-secondary)', cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>Browse...</button>
         </div>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 32px 32px' }}>
-        {error && <div style={{ color: '#DC2626', fontSize: 13, marginBottom: 12, textAlign: 'center' }}>{error}</div>}
-        {saving && <div style={{ color: '#6B6B66', fontSize: 13, marginBottom: 12, textAlign: 'center' }}>Creating your project...</div>}
-        {step === 1 && <Step1 onNext={onNext} onBack={onBack} />}
-        {step === 2 && <Step2 onNext={onNext} onBack={onBack} />}
-        {step === 3 && <Step3 onNext={onNext} onBack={onBack} />}
-        {step === 4 && <Step4 onNext={onNext} onBack={onBack} />}
-        {step === 5 && <Step5 onNext={onNext} onBack={onBack} />}
-        {step === 6 && <Step6 onNext={onNext} onBack={onBack} />}
+      {error && <div style={{ fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '10px 14px', borderRadius: 6 }}>{error}</div>}
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button onClick={() => setStep(1)} style={btn()}>&#8592; Back</button>
+        <button onClick={handleCreate} disabled={creating || !folder} style={btn(true)}>
+          {creating ? 'Creating...' : 'Create project \u2192'}
+        </button>
       </div>
     </div>
   );
-};
-
-export default OnboardingFlow;
+}
