@@ -204,7 +204,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     setMessages(updated); setInput(''); setChatRunning(true); setError(null);
     try {
       const reply = await callAI(updated, key);
-      const newMsgs = [...updated, { role: 'assistant', content: reply }];
+      const newMsgs: Message[] = [...updated, { role: 'assistant' as const, content: reply }];
       setMessages(newMsgs);
       saveCouncilArtifact({ project_id: pid, user_id: '', stage_index: currentStage, artifact_type: 'chat_history', content: JSON.stringify(newMsgs) }).catch(() => {});
     } catch (e) { setError(String(e)); }
