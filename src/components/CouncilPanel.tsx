@@ -146,7 +146,7 @@ export default function CouncilPanel({
   onApprove,
   onRequestChanges,
   onReject,
-  status,
+  
   questions = [],
   onQuestionnaireSubmit,
 }: CouncilPanelProps) {

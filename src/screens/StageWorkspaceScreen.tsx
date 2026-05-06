@@ -6,7 +6,7 @@ import CouncilPanel from '../components/CouncilPanel';
 import { saveCouncilArtifact, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
-import Questionnaire from '../components/Questionnaire';
+
 
 const SYSTEM_PROMPT = `You are LINUP, an expert product manager and product strategist. The user has already provided their app name and description. Your job is to deepen context through focused conversation — do NOT ask them to re-explain what they already told you.
 
@@ -68,7 +68,7 @@ export default function StageWorkspaceScreen() {
   const [stageStatus, setStageStatus] = useState<StageStatus | null>(null);
   const [passNumber, setPassNumber] = useState(1);
   const [councilQuestions, setCouncilQuestions] = useState<Array<{id:string;text:string}>>([]);
-  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [chatRunning, setChatRunning] = useState(false);
@@ -110,7 +110,7 @@ export default function StageWorkspaceScreen() {
         if (qLines.length > 0 && !result?.approved && passNumber < 3) {
           const qs = qLines.map((l: string, idx: number) => ({ id: 'q' + idx, text: l.replace(/^QUESTION:\s*/, '').trim() }));
           setCouncilQuestions(qs);
-          setShowQuestionnaire(true);
+          
         }
       } catch (e) { console.error('Supabase save error:', e); }
     } catch (e) { setError(String(e)); }
@@ -220,7 +220,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         if (qLines.length > 0 && !result?.approved && passNumber < 3) {
           const qs = qLines.map((l: string, idx: number) => ({ id: 'q' + idx, text: l.replace(/^QUESTION:\s*/, '').trim() }));
           setCouncilQuestions(qs);
-          setShowQuestionnaire(true);
+          
         }
       } catch (e) { console.error('Supabase save error:', e); }
       await loadStage(currentStage);
@@ -229,7 +229,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
   };
 
   const handleQuestionnaireSubmit = async (answers: Record<string, string>) => {
-    setShowQuestionnaire(false);
+    
     const nextPass = passNumber + 1;
     setPassNumber(nextPass);
     const answerContext = councilQuestions
