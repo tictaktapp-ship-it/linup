@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
-import { saveCouncilArtifact, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
+import { saveCouncilArtifact, getCouncilArtifacts, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
 
@@ -89,6 +89,15 @@ export default function StageWorkspaceScreen() {
       if (s.status === 'pending' && stage === 0 && messages.length === 0) startChat();
       const result = await invoke<{ agents: AgentResult[]; gate_verdict: string; gate_scorecard: string; approved: boolean; } | null>('get_council_result', { projectId: pid, stageIndex: stage });
       if (result) setCouncil({ ...result, running: false });
+        // Load chat history
+        try {
+          const artifacts = await getCouncilArtifacts(pid, stage);
+          const chatArtifact = artifacts?.find((a: any) => a.artifact_type === 'chat_history');
+          if (chatArtifact?.content) {
+            const saved = JSON.parse(chatArtifact.content);
+            if (Array.isArray(saved) && saved.length > 0) setMessages(saved);
+          }
+        } catch { /* no history */ }
       // Save to Supabase
       try {
         await saveCouncilArtifact({
@@ -195,7 +204,9 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     setMessages(updated); setInput(''); setChatRunning(true); setError(null);
     try {
       const reply = await callAI(updated, key);
-      setMessages([...updated, { role: 'assistant', content: reply }]);
+      const newMsgs = [...updated, { role: 'assistant', content: reply }];
+      setMessages(newMsgs);
+      saveCouncilArtifact({ project_id: pid, user_id: '', stage_index: currentStage, artifact_type: 'chat_history', content: JSON.stringify(newMsgs) }).catch(() => {});
     } catch (e) { setError(String(e)); }
     setChatRunning(false);
   };
