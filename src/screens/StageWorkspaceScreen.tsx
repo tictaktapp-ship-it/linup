@@ -180,7 +180,7 @@ export default function StageWorkspaceScreen() {
           if (trimmed.startsWith('QUESTION:')) { qLines.push(trimmed.replace(/^QUESTION:\s*/, '')); }
           else if (inQSection && /^\d+[\.\)]\s+.+/.test(trimmed)) { qLines.push(trimmed.replace(/^\d+[\.\)]\s+/, '')); }
         });
-        if (qLines.length > 0 && !result?.approved && passNumber < 3) {
+        if (qLines.length > 0 && !result?.approved && passNumber < 5) {
           const qs = qLines.map((l: string, idx: number) => ({ id: 'q' + idx, text: l.replace(/^QUESTION:\s*/, '').trim() }));
           setCouncilQuestions(qs);
           
@@ -236,6 +236,8 @@ export default function StageWorkspaceScreen() {
         });
         if (qLines.length > 0 && !ev.payload.approved) {
           setCouncilQuestions(qLines.map((l, idx) => ({ id: 'q' + idx, text: l.trim() })));
+        } else if (ev.payload.approved) {
+          setCouncilQuestions([]);
         }
       });
       return () => { u1.then(f => f()); u2.then(f => f()); u3.then(f => f()); u4.then(f => f()); u5.then(f => f()); u6.then(f => f()); };

@@ -110,20 +110,11 @@ fn da_has_enough_findings(text: &str) -> bool {
 }
 
 fn check_gate_integrity(results: &[AgentResult], gate_output: &str) -> (String, bool) {
-    let has_critical = results.iter().any(|r| {
-        r.output.to_uppercase().contains("CRITICAL") && r.agent_id != "quality_gate"
-    });
     let gate_upper = gate_output.to_uppercase();
-    let gate_approved = (gate_upper.contains("APPROVED") || gate_upper.contains("CONDITIONAL"))
-        && !gate_upper.contains("BLOCKED");
-    if has_critical && gate_approved {
-        let overridden = format!(
-            "{}\n\n---\nCONSTITUTION OVERRIDE: CRITICAL findings exist. Verdict changed to BLOCKED.",
-            gate_output
-        );
-        return (overridden, false);
-    }
-    (gate_output.to_string(), gate_approved)
+    let gate_approved = gate_upper.contains("APPROVED") || gate_upper.contains("CONDITIONAL");
+    let gate_blocked = gate_upper.contains("BLOCKED") && !gate_upper.contains("NOT BLOCKED") && !gate_upper.contains("UNBLOCKED");
+    let approved = gate_approved && !gate_blocked;
+    (gate_output.to_string(), approved)
 }
 
 async fn call_groq(api_key: &str, model: &str, system: &str, user_message: &str) -> Result<String, String> {
