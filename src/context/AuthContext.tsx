@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import type { LinupUser } from '../lib/supabase';
-
+import { setCurrentUserId, clearCurrentUserId } from '../lib/supabaseService';
 interface AuthContextType {
   user: LinupUser | null;
   loading: boolean;
@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearTimeout(hardStop);
         if (session?.user) {
           setUser({ id: session.user.id, email: session.user.email ?? '', plan: 'free' });
-        }
+          setCurrentUserId(session.user.id);
         setLoading(false);
       })
       .catch(() => {
@@ -44,11 +44,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser({ id: session.user.id, email: session.user.email ?? '', plan: 'free' });
-        setLoading(false);
+        setCurrentUserId(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
-        setLoading(false);
-      }
+        clearCurrentUserId();
     });
 
     // Start callback server — completely optional, errors ignored
@@ -70,7 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (code) {
               const { data, error } = await supabase.auth.exchangeCodeForSession(code);
               if (!error && data.session?.user) {
-                setUser({ id: data.session.user.id, email: data.session.user.email ?? '', plan: 'free' });
+              setUser({ id: data.session.user.id, email: data.session.user.email ?? '', plan: 'free' });
+                setCurrentUserId(data.session.user.id);
                 setLoading(false);
               }
             }
@@ -88,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try { await supabase.auth.signOut(); } catch { /* ignore */ }
     setUser(null);
+    clearCurrentUserId();
     setLoading(false);
   };
 
