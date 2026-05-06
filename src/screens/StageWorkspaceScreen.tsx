@@ -404,7 +404,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         )}
       </div>
 
-      {showQuestionnaire ? (<Questionnaire questions={councilQuestions} passNumber={passNumber} onSubmit={handleQuestionnaireSubmit} onSkip={() => setShowQuestionnaire(false)} />) : (<CouncilPanel council={council} onApprove={handleApprove} onRequestChanges={async (fb) => { const k = await getKeys(); if (!k) return; setCouncilRunning(true); const msg = messages.concat([{ role: 'user' as const, content: 'Council feedback: ' + fb }]); try { const r = await callAI(msg, k); setMessages(msg.concat([{ role: 'assistant', content: r }])); setCouncil(makeEmptyCouncil()); } catch(e) { setError(String(e)); } setCouncilRunning(false); }} onReject={handleReject} status={status} />
+      {showQuestionnaire ? (<Questionnaire questions={councilQuestions} passNumber={passNumber} onSubmit={handleQuestionnaireSubmit} onSkip={() => setShowQuestionnaire(false)} />) : (<CouncilPanel council={council} onApprove={handleApprove} onRequestChanges={async (fb) => { const k = await getKeys(); if (!k) return; setCouncilRunning(true); const msg = messages.concat([{ role: 'user' as const, content: 'Council feedback: ' + fb }]); try { const r = await callAI(msg, k); setMessages(msg.concat([{ role: 'assistant', content: r }])); setCouncil(makeEmptyCouncil()); } catch(e) { setError(String(e)); } setCouncilRunning(false); }} onReject={handleReject} status={status} />)}
     </div>
   );
 }
