@@ -77,7 +77,7 @@ export default function ProjectsScreen() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {projects.map(p => (
-            <div key={p.id} onClick={() => navigate(/project//stage/)}
+            <div key={p.id} onClick={() => navigate('/project/' + p.id + '/stage/' + String(p.stage_index ?? 0))}
               style={{ background: '#fff', border: '0.5px solid var(--color-border)', borderRadius: 10, padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'border-color 0.15s' }}
               onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--color-brand)')}
               onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--color-border)')}>
