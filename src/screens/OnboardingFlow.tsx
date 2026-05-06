@@ -1,7 +1,6 @@
-// createProject import removed — project routing via Rust invoke
 import { useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
+import { createProject } from '../lib/supabaseService';
 
 export default function OnboardingFlow() {
   const [step, setStep] = useState(1);
@@ -19,24 +18,16 @@ export default function OnboardingFlow() {
   };
 
   const handleCreate = async () => {
-    if (!folder) { setError('Please select a folder for your project.'); return; }
     setCreating(true); setError(null);
     try {
-      const projectId = await invoke<string>('create_project', {
-        name,
-        description,
-        folderPath: folder,
-        stack: 'web',
-        budgetCap: 10.0,
-      });
-      window.location.hash = '/project/' + projectId + '/stage/0';
+      const project = await createProject(name, description);
+      if (!project) throw new Error('Project creation returned null — are you logged in?');
+      window.location.hash = '/project/' + project.id + '/stage/0';
     } catch (e) {
       setError('Failed to create project: ' + String(e));
       setCreating(false);
     }
   };
-
-
 
   const card: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 20, padding: '48px 40px', maxWidth: 520, margin: '40px auto 0', width: '100%' };
   const label: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6, display: 'block' };
@@ -55,7 +46,7 @@ export default function OnboardingFlow() {
       </div>
       <div>
         <label style={label}>Describe your app in a few sentences</label>
-        <textarea style={{ ...input, resize: 'vertical', minHeight: 100, fontFamily: 'system-ui' }} placeholder='e.g. A web app for our team to request and approve annual leave. Managers need to see a calendar view and approve or reject requests...' value={description} onChange={e => setDescription(e.target.value)} />
+        <textarea style={{ ...input, resize: 'vertical', minHeight: 100, fontFamily: 'system-ui' }} placeholder='e.g. A web app for our team to request and approve annual leave...' value={description} onChange={e => setDescription(e.target.value)} />
       </div>
       <button disabled={!name.trim() || !description.trim()} onClick={() => setStep(2)} style={btn(true)}>
         Continue &rarr;
@@ -67,10 +58,10 @@ export default function OnboardingFlow() {
     <div style={card}>
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 8 }}>Where should we save your project?</div>
-        <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>LINUP saves all generated code and artifacts to a local folder on your machine.</div>
+        <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>LINUP saves all generated code and artifacts to a local folder on your machine. This step is optional — you can set it later.</div>
       </div>
       <div>
-        <label style={label}>Project folder</label>
+        <label style={label}>Project folder <span style={{ color: 'var(--color-text-tertiary)', fontWeight: 400 }}>(optional)</span></label>
         <div style={{ display: 'flex', gap: 8 }}>
           <input style={{ ...input, flex: 1 }} placeholder='No folder selected' value={folder} readOnly />
           <button onClick={pickFolder} style={{ padding: '10px 16px', border: '1px solid var(--color-border-tertiary)', borderRadius: 8, background: 'var(--color-bg-secondary)', cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>Browse...</button>
@@ -79,7 +70,7 @@ export default function OnboardingFlow() {
       {error && <div style={{ fontSize: 13, color: '#DC2626', background: '#FEF2F2', padding: '10px 14px', borderRadius: 6 }}>{error}</div>}
       <div style={{ display: 'flex', gap: 10 }}>
         <button onClick={() => setStep(1)} style={btn()}>&#8592; Back</button>
-        <button onClick={handleCreate} disabled={creating || !folder} style={btn(true)}>
+        <button onClick={handleCreate} disabled={creating} style={btn(true)}>
           {creating ? 'Creating...' : 'Create project \u2192'}
         </button>
       </div>
