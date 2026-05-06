@@ -333,7 +333,7 @@ export default function CouncilPanel({
                   questions={questions}
                   passNumber={1}
                   onSubmit={onQuestionnaireSubmit}
-                  onSkip={() => {}}
+                  onSkip={() => { onApprove(); }}
                 />
               </div>
             )}
