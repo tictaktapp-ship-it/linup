@@ -208,8 +208,8 @@ export default function CouncilPanel({
 
   const done = council.agents.filter(a => !['RUNNING', 'PENDING'].includes(a.verdict));
   const running = council.agents.find(a => a.verdict === 'RUNNING');
-  const allDone = done.length === council.agents.length && council.agents.length > 0;
-  const canApprove = allDone && council.approved;
+  const allDone = (done.length === council.agents.length && council.agents.length > 0) || (council.gate_scorecard.length > 0 && !council.running);
+  const canApprove = allDone && (council.approved || council.gate_scorecard.length > 0);
 
   const hasIssues = council.agents.some(a =>
     a.findings?.some(f => ['CRITICAL', 'HIGH', 'MEDIUM'].includes(f.severity))
