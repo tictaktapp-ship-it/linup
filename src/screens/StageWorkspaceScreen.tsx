@@ -266,8 +266,8 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
       if (!key) return;
       const brief = augmented.map(m => m.role + ': ' + m.content).join('\n');
       const result = await invoke<CouncilState>('run_council', {
-        projectId: pid, stageIndex: currentStage,
-        brief, apiKeys: { openrouter: key },
+        projectId: pid, stageIndex: currentStage, userBrief: brief,
+        apiKeys: { groq: key },
       });
       if (result) {
         setCouncil({ ...result, running: false });
