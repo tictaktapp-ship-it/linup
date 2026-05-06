@@ -110,7 +110,7 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
 
   return (
     <div style={{
-      width: 280, borderLeft: '0.5px solid var(--color-border-tertiary)',
+      width: 380, borderLeft: '0.5px solid var(--color-border-tertiary)',
       display: 'flex', flexDirection: 'column', background: '#FAFAFA',
     }}>
 
@@ -165,14 +165,14 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
                 ⚠ Some issues need attention. Switch to Review table to see details.
               </div>
             )}
-            {council.agents.map(agent => {
+            {council.agents.filter((a, i, arr) => arr.findIndex(x => x.agent_id === a.agent_id) === i).map(agent => {
               const isRunning = agent.verdict === 'RUNNING';
               const isDone = !['RUNNING', 'PENDING'].includes(agent.verdict);
               const color = VERDICT_COLOR[agent.verdict] ?? '#CBD5E1';
               const icon = VERDICT_ICON[agent.verdict] ?? '○';
               const label = isDone ? (DONE_LABELS[agent.agent_id] ?? agent.role) : (ACTIVITY_LABELS[agent.agent_id] ?? 'Working...');
               return (
-                <div key={agent.agent_id} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 4px', opacity: agent.verdict === 'PENDING' ? 0.4 : 1 }}>
+                <div key={agent.agent_id} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 6px', borderRadius: 6, background: isRunning ? 'rgba(2,132,199,0.06)' : 'transparent', opacity: agent.verdict === 'PENDING' ? 0.35 : 1 }}>
                   {isRunning ? <span style={spin} /> : <span style={{ color, fontSize: 10, fontWeight: 700, width: 10, flexShrink: 0 }}>{icon}</span>}
                   <span style={{ flex: 1, fontSize: 11, color: isRunning ? '#0284C7' : isDone ? '#334155' : '#94A3B8', lineHeight: 1.4 }}>{label}</span>
                   {isDone && agent.verdict !== 'PASS' && (

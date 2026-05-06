@@ -17,18 +17,39 @@ PHASE 2 — Brand (one message, after requirements are clear): Ask these four qu
 4. Font preference: Clean and minimal / Elegant serif / Technical / No preference.
 
 After brand questions are answered, confirm you have what you need and ask them to click Deploy AI Council.`;
+// Lucide icon SVG paths for each stage — modern, minimal, consistent
+const STAGE_ICONS: Record<number, string> = {
+  0:  'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', // FileText
+  1:  'M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM17 13a1 1 0 00-1 1v4a1 1 0 001 1h2a1 1 0 001-1v-4a1 1 0 00-1-1h-2z', // Layout
+  2:  'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4', // Database
+  3:  'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', // Terminal
+  4:  'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', // Monitor
+  5:  'M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18', // CheckSquare
+  6:  'M13 10V3L4 14h7v7l9-11h-7z', // Zap (CI/CD speed)
+  7:  'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', // Shield
+  8:  'M13 10V3L4 14h7v7l9-11h-7z', // Activity/Performance  
+  9:  'M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z', // Cloud
+  10: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4', // Package
+};
+
+const STAGE_COLOURS: Record<number, string> = {
+  0: '#8C00B4', 1: '#4F46E5', 2: '#0D9488', 3: '#0284C7',
+  4: '#2D6A4F', 5: '#D97706', 6: '#EA580C', 7: '#DC2626',
+  8: '#E11D48', 9: '#059669', 10: '#475569',
+};
+
 const STAGES = [
-  { index: 0,  name: 'Product Spec',  icon: '📋', description: 'AI council interviews you and generates a full product specification' },
-  { index: 1,  name: 'Architecture',  icon: '🏗️', description: 'System design, tech stack, and component structure' },
-  { index: 2,  name: 'Database',      icon: '🗄️', description: 'Schema design, migrations, and data model' },
-  { index: 3,  name: 'Backend',       icon: '⚙️', description: 'API design, business logic, and server code' },
-  { index: 4,  name: 'Frontend',      icon: '💻', description: 'UI components, pages, and user flows' },
-  { index: 5,  name: 'Tests',         icon: '🧪', description: 'Unit, integration, and end-to-end tests' },
-  { index: 6,  name: 'CI/CD',         icon: '🚀', description: 'Build pipeline and deployment configuration' },
-  { index: 7,  name: 'Security',      icon: '🔒', description: 'Auth, permissions, and security review' },
-  { index: 8,  name: 'Performance',   icon: '⚡', description: 'Optimisation and load testing' },
-  { index: 9,  name: 'Deployment',    icon: '🌐', description: 'Production deployment and go-live' },
-  { index: 10, name: 'Handover',      icon: '📦', description: 'Documentation, export, and handover pack' },
+  { index: 0,  name: 'Product Spec',  description: 'AI council reviews your brief and produces product direction' },
+  { index: 1,  name: 'Architecture',  description: 'System design, tech stack, and component structure' },
+  { index: 2,  name: 'Database',      description: 'Schema design, migrations, and data model' },
+  { index: 3,  name: 'Backend',       description: 'API design, business logic, and server code' },
+  { index: 4,  name: 'Frontend',      description: 'UI components, pages, and user flows' },
+  { index: 5,  name: 'Tests',         description: 'Unit, integration, and end-to-end tests' },
+  { index: 6,  name: 'CI/CD',         description: 'Build pipeline and deployment configuration' },
+  { index: 7,  name: 'Security',      description: 'Auth, permissions, and security review' },
+  { index: 8,  name: 'Performance',   description: 'Optimisation and load testing' },
+  { index: 9,  name: 'Deployment',    description: 'Production deployment and go-live' },
+  { index: 10, name: 'Handover',      description: 'Documentation, export, and handover pack' },
 ];
 
 interface Message { role: 'user' | 'assistant'; content: string; }
@@ -174,8 +195,8 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
 
-      <div style={{ width: 192, background: '#0C0C0E', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
-        <div style={{ padding: '16px 14px 8px', fontSize: 10, fontWeight: 600, color: '#6B7E96', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Pipeline</div>
+      <div style={{ width: 200, background: '#0C0C0E', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
+        <div style={{ padding: '14px 12px 6px', fontSize: 9, fontWeight: 700, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Pipeline</div>
         {STAGES.map(stage => {
           const isActive = stage.index === currentStage;
           const isDone = stage.index < currentStage;
