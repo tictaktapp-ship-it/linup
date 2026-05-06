@@ -1,3 +1,4 @@
+import { createProject } from '../lib/supabaseService';
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';

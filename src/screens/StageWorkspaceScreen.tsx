@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
+import { saveCouncilArtifact, upsertStageRun, updateProjectStage, updateProjectBrand } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
 
@@ -81,6 +82,24 @@ export default function StageWorkspaceScreen() {
       if (s.status === 'pending' && stage === 0 && messages.length === 0) startChat();
       const result = await invoke<{ agents: AgentResult[]; gate_verdict: string; gate_scorecard: string; approved: boolean; } | null>('get_council_result', { projectId: pid, stageIndex: stage });
       if (result) setCouncil({ ...result, running: false });
+      // Save to Supabase
+      try {
+        await saveCouncilArtifact({
+          project_id: pid,
+          user_id: '',
+          stage_index: currentStage,
+          artifact_type: 'council_result',
+          content: JSON.stringify(result.agents),
+        });
+        await saveCouncilArtifact({
+          project_id: pid,
+          user_id: '',
+          stage_index: currentStage,
+          artifact_type: 'product_spec',
+          content: result.gate_scorecard,
+        });
+        await upsertStageRun(pid, currentStage, result.approved ? 'awaiting_approval' : 'gate_failed');
+      } catch (e) { console.error('Supabase save error:', e); }
     } catch (e) { setError(String(e)); }
   };
 
@@ -166,6 +185,24 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         apiKeys: { groq: key },
       });
       setCouncil({ ...result, running: false });
+      // Save to Supabase
+      try {
+        await saveCouncilArtifact({
+          project_id: pid,
+          user_id: '',
+          stage_index: currentStage,
+          artifact_type: 'council_result',
+          content: JSON.stringify(result.agents),
+        });
+        await saveCouncilArtifact({
+          project_id: pid,
+          user_id: '',
+          stage_index: currentStage,
+          artifact_type: 'product_spec',
+          content: result.gate_scorecard,
+        });
+        await upsertStageRun(pid, currentStage, result.approved ? 'awaiting_approval' : 'gate_failed');
+      } catch (e) { console.error('Supabase save error:', e); }
       await loadStage(currentStage);
     } catch (e) { setError(String(e)); setCouncil(prev => ({ ...prev, running: false })); }
     setCouncilRunning(false);
@@ -174,6 +211,8 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
   const handleApprove = async () => {
     try {
       await invoke('approve_stage', { projectId: pid, stageIndex: currentStage });
+      await updateProjectStage(pid, currentStage + 1);
+      await upsertStageRun(pid, currentStage, 'approved');
 
       // After Stage 0 approval: trigger the Specification Engineering Team
       if (currentStage === 0) {

@@ -1,6 +1,8 @@
+import { listProjects, createProject } from '../lib/supabaseService';
+import type { Project } from '../lib/supabaseService';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { invoke } from '@tauri-apps/api/core';
+// invoke not needed for Supabase reads
 
 interface Project {
   id: string;
@@ -22,7 +24,7 @@ export default function ProjectsScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    invoke<Project[]>('list_projects').then(p => { setProjects(p ?? []); setLoading(false); }).catch(() => setLoading(false));
+    listProjects().then(p => { setProjects(p ?? []); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--color-text-tertiary)', fontSize: 14 }}>Loading...</div>;
