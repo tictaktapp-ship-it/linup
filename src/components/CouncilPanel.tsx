@@ -30,6 +30,7 @@ interface CouncilPanelProps {
   status: string;
   questions?: Array<{ id: string; text: string }>;
   onQuestionnaireSubmit?: (answers: Record<string, string>) => void;
+  document?: string;
   activeTab?: 'progress' | 'review';
   onTabChange?: (tab: 'progress' | 'review') => void;
 }
@@ -85,6 +86,42 @@ const VERDICT_ICON: Record<string, string> = {
   PENDING:    '○',
   FAILED:     '✗',
 };
+
+function DocumentViewer({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const sections = text.split(/\n(?=##\s)/).filter(Boolean);
+  return (
+    <div style={{ marginBottom: 16, border: '0.5px solid var(--color-brand)', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+      <button
+        onClick={() => setExpanded(e => !e)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}
+      >
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-brand)' }}>📄 Product Direction Document</div>
+          <div style={{ fontSize: 10, color: '#8A8A82', marginTop: 2 }}>{sections.length} sections — click to {expanded ? 'collapse' : 'read full document'}</div>
+        </div>
+        <span style={{ fontSize: 11, color: 'var(--color-brand)', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
+          {expanded ? 'Collapse ▲' : 'Read ▼'}
+        </span>
+      </button>
+      {expanded && (
+        <div style={{ padding: '0 14px 14px', maxHeight: 520, overflowY: 'auto' }}>
+          {sections.map((section, i) => {
+            const lines = section.split('\n');
+            const heading = lines[0].replace(/^#+\s*/, '');
+            const body = lines.slice(1).join('\n').trim();
+            return (
+              <div key={i} style={{ marginBottom: 14, paddingBottom: 14, borderBottom: i < sections.length - 1 ? '0.5px solid #E0E0DE' : 'none' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#1A1A18', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{heading}</div>
+                <div style={{ fontSize: 12, color: '#4A4A46', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{body}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function MockupCard({ spec }: { spec: MockupSpec }) {
   const [svg, setSvg] = useState<string>('');
@@ -151,6 +188,7 @@ export default function CouncilPanel({
   
   questions = [],
   onQuestionnaireSubmit,
+  document,
   activeTab,
   onTabChange,
 }: CouncilPanelProps) {
@@ -282,6 +320,9 @@ export default function CouncilPanel({
         {/* REVIEW TABLE VIEW */}
         {tab === 'review' && (
           <div>
+            {/* Document viewer */}
+            {document && <DocumentViewer text={document} />}
+
             {/* Questionnaire — shown when council has questions for the user */}
             {questions.length > 0 && onQuestionnaireSubmit && (
               <div style={{ marginBottom: 16 }}>
