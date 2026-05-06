@@ -95,7 +95,7 @@ export default function StageWorkspaceScreen() {
           const chatArtifact = artifacts?.find((a: any) => a.artifact_type === 'chat_history');
           if (chatArtifact?.content) {
             const saved = JSON.parse(chatArtifact.content);
-            if (Array.isArray(saved) && saved.length > 0) setMessages(saved);
+            if (Array.isArray(saved) && saved.length > 0) setMessages(saved as Message[]);
           }
         } catch { /* no history */ }
       // Save to Supabase
