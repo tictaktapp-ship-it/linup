@@ -38,7 +38,7 @@ export default function OnboardingFlow() {
   const card: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 20, padding: '48px 40px', maxWidth: 520, margin: '40px auto 0', width: '100%' };
   const label: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6, display: 'block' };
   const input: React.CSSProperties = { width: '100%', padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', borderRadius: 8, fontSize: 14, background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', outline: 'none', boxSizing: 'border-box' };
-  const btn = (accent = false): React.CSSProperties => ({ flex: accent ? 2 : 1, padding: '11px', borderRadius: 8, border: accent ? 'none' : '0.5px solid var(--color-border-tertiary)', background: accent ? '#6366F1' : 'transparent', color: accent ? '#fff' : 'var(--color-text-primary)', fontWeight: 600, cursor: 'pointer', fontSize: 14 });
+  const btn = (accent = false): React.CSSProperties => ({ flex: accent ? 2 : 1, padding: '11px', borderRadius: 8, border: accent ? 'none' : '0.5px solid var(--color-border-tertiary)', background: accent ? 'var(--color-brand)' : 'transparent', color: accent ? '#fff' : 'var(--color-text-primary)', fontWeight: 600, cursor: 'pointer', fontSize: 14 });
 
   if (step === 1) return (
     <div style={card}>

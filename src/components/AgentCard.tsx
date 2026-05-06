@@ -13,7 +13,7 @@ interface AgentCardProps {
 const VERDICT_STYLE: Record<string, { bg: string; color: string; label: string }> = {
   PASS:       { bg: '#F0FDF4', color: '#16A34A', label: 'PASS' },
   SOFT_BLOCK: { bg: '#FEF3C7', color: '#D97706', label: 'SOFT BLOCK' },
-  ADVISORY:   { bg: '#EEF2FF', color: '#6366F1', label: 'ADVISORY' },
+  ADVISORY:   { bg: '#EEF2FF', color: 'var(--color-brand)', label: 'ADVISORY' },
   RUNNING:    { bg: '#F0F9FF', color: '#0284C7', label: 'RUNNING' },
   PENDING:    { bg: '#F8FAFC', color: '#94A3B8', label: 'PENDING' },
   FAILED:     { bg: '#FEF2F2', color: '#DC2626', label: 'FAILED' },

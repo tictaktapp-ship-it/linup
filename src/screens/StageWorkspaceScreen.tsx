@@ -232,7 +232,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
 
   const status = stageStatus?.status ?? 'pending';
   const readyToRunCouncil = messages.length >= 3 && !councilRunning && !chatRunning && council.agents.length === 0;
-  const spin = { display: 'inline-block', width: 14, height: 14, border: '2px solid rgba(99,102,241,0.3)', borderTopColor: '#6366F1', borderRadius: '50%', animation: 'linup-spin 0.7s linear infinite' } as React.CSSProperties;
+  const spin = { display: 'inline-block', width: 14, height: 14, border: '2px solid rgba(99,102,241,0.3)', borderTopColor: 'var(--color-brand)', borderRadius: '50%', animation: 'linup-spin 0.7s linear infinite' } as React.CSSProperties;
 
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>

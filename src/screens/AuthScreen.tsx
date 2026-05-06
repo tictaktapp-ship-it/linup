@@ -55,7 +55,7 @@ export default function AuthScreen() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {['From idea to deployed app in 11 stages', 'AI handles the architecture and code', 'No coding required', 'First app is always free'].map(v => (
             <div key={v} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 13, color: '#94A3B8' }}>
-              <span style={{ color: '#6366F1', fontSize: 15, flexShrink: 0, marginTop: 1 }}>&#10003;</span>
+              <span style={{ color: 'var(--color-brand)', fontSize: 15, flexShrink: 0, marginTop: 1 }}>&#10003;</span>
               <span>{v}</span>
             </div>
           ))}
@@ -84,7 +84,7 @@ export default function AuthScreen() {
             <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', background: 'var(--color-bg-secondary)', padding: '10px 16px', borderRadius: 8, width: '100%', textAlign: 'left' }}>
               Can&apos;t find it? Check your spam folder. The link expires in 1 hour.
             </div>
-            <button onClick={() => { setSent(false); setEmail(''); setEmailTouched(false); }} style={{ background: 'transparent', border: 'none', color: '#6366F1', cursor: 'pointer', fontSize: 13 }}>
+            <button onClick={() => { setSent(false); setEmail(''); setEmailTouched(false); }} style={{ background: 'transparent', border: 'none', color: 'var(--color-brand)', cursor: 'pointer', fontSize: 13 }}>
               Use a different email
             </button>
           </div>
@@ -99,7 +99,7 @@ export default function AuthScreen() {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40, background: '#F8FAFC' }}>
         <div style={{ maxWidth: 380, width: '100%', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div>
-            <div style={{ fontSize: 11, color: '#6366F1', fontWeight: 600, marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>The fastest way to build internal tools</div>
+            <div style={{ fontSize: 11, color: 'var(--color-brand)', fontWeight: 600, marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>The fastest way to build internal tools</div>
             <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 6 }}>Sign in to LINUP</div>
             <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>Enter your email and we&apos;ll send a secure sign-in link. No password needed.</div>
           </div>
@@ -114,13 +114,13 @@ export default function AuthScreen() {
             />
             {(error || showEmailError) && (<div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#DC2626' }}><span>&#9888;</span><span>{error || 'Please enter a valid email address.'}</span></div>)}
             <button onClick={handleSend} disabled={loading}
-              style={{ padding: '12px 16px', background: loading ? '#818CF8' : '#6366F1', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.15s' }}
+              style={{ padding: '12px 16px', background: loading ? '#818CF8' : 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'background 0.15s' }}
             >
               {loading ? (<><span style={{ display: 'inline-block', width: 14, height: 14, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'linup-spin 0.7s linear infinite' }} /><span>Sending...</span></>) : (<><span>Continue with email</span><span aria-hidden='true' style={{ fontSize: 12, opacity: 0.7 }}>&#9166;</span></>)}
             </button>
           </div>
           <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', lineHeight: 1.7 }}>
-            By continuing, you agree to our{' '}<a href='https://linup.io/terms' target='_blank' rel='noopener noreferrer' style={{ color: '#6366F1', textDecoration: 'none' }}>Terms &amp; Conditions</a>{' '}and{' '}<a href='https://linup.io/privacy' target='_blank' rel='noopener noreferrer' style={{ color: '#6366F1', textDecoration: 'none' }}>Privacy Policy</a>.
+            By continuing, you agree to our{' '}<a href='https://linup.io/terms' target='_blank' rel='noopener noreferrer' style={{ color: 'var(--color-brand)', textDecoration: 'none' }}>Terms &amp; Conditions</a>{' '}and{' '}<a href='https://linup.io/privacy' target='_blank' rel='noopener noreferrer' style={{ color: 'var(--color-brand)', textDecoration: 'none' }}>Privacy Policy</a>.
           </div>
           <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 16, fontSize: 12, color: 'var(--color-text-tertiary)', lineHeight: 1.7 }}>
             <strong style={{ color: 'var(--color-text-secondary)' }}>Free to build.</strong>{' '}
