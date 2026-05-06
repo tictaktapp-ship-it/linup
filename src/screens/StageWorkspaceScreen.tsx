@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
+import SpecDocumentViewer from '../components/SpecDocumentViewer';
 import { saveCouncilArtifact, getCouncilArtifacts, saveSpecArtifact, getLatestArtifact, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
@@ -115,6 +116,8 @@ export default function StageWorkspaceScreen() {
   const [specDoc, setSpecDoc] = useState<string | null>(null);
   const [specBuilding, setSpecBuilding] = useState(false);
   const [specAgents, setSpecAgents] = useState<Array<{id:string;role:string;done:boolean}>>([]);
+  const [showSpecViewer, setShowSpecViewer] = useState(false);
+  const [projectName, setProjectName] = useState('');
   const [council, setCouncil] = useState<CouncilState>(makeEmptyCouncil());
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState('');
@@ -125,6 +128,7 @@ export default function StageWorkspaceScreen() {
 
   const loadStage = async (stage: number) => {
     try {
+      try { const proj = await invoke<{name:string}>('get_project', { projectId: pid }); if (proj?.name) setProjectName(proj.name); } catch {}
       const s = await invoke<StageStatus>('get_stage_status', { projectId: pid, stageIndex: stage });
       setStageStatus(s);
       if (s.status === 'pending' && stage === 0 && messages.length === 0) startChat();
@@ -388,6 +392,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
             if (specResult?.assembled_spec) {
               setSpecDoc(specResult.assembled_spec);
               setSpecBuilding(false);
+              setShowSpecViewer(true);
               try { await saveSpecArtifact(pid, specResult.assembled_spec, specResult.all_gaps ?? [], specResult.all_questions ?? []); } catch(e) { console.error(e); }
             }
             setMessages(prev => [...prev, {
@@ -414,6 +419,35 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     } catch (e) { setError(String(e)); }
   };
 
+  const handleSpecApprove = async (_outputFolder: string) => {
+    try {
+      await saveSpecArtifact(pid, specDoc ?? '', [], []);
+      await invoke('approve_stage', { projectId: pid, stageIndex: 0 });
+      await updateProjectStage(pid, 1);
+      await upsertStageRun(pid, 0, 'approved');
+      setShowSpecViewer(false);
+      setCurrentStage(1);
+      setMessages([]);
+      setStageStatus(null);
+      setCouncil(makeEmptyCouncil());
+      await loadStage(1);
+    } catch(e) { setError(String(e)); }
+  };
+  const handleSpecReject = async (feedback: string) => {
+    setShowSpecViewer(false);
+    setSpecDoc(null);
+    setSpecBuilding(true);
+    setSpecAgents([]);
+    setMessages(prev => [...prev, { role: 'assistant' as const, content: 'Specification rejected. The Engineering Team is revising based on your feedback.' }]);
+    try {
+      const key = await getKeys();
+      if (!key) return;
+      const productDirection = council.agents.map(a => '## ' + a.role + '\n' + a.output).join('\n\n---\n\n');
+      const revisedDirection = productDirection + '\n\n## FOUNDER REJECTION FEEDBACK\n' + feedback;
+      const result = await invoke<any>('run_spec_council', { projectId: pid, productDirection: revisedDirection, apiKeys: { openrouter: key } });
+      if (result?.assembled_spec) { setSpecDoc(result.assembled_spec); setSpecBuilding(false); setShowSpecViewer(true); }
+    } catch(e) { setError(String(e)); setSpecBuilding(false); }
+  };
   const handleReject = async () => {
     try {
       await invoke('reject_stage', { projectId: pid, stageIndex: currentStage });
@@ -523,6 +557,9 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
       </div>
 
       <CouncilPanel council={council} questions={councilQuestions} document={council.gate_scorecard} activeTab={councilTab} onTabChange={setCouncilTab} onQuestionnaireSubmit={handleQuestionnaireSubmit} onApprove={handleApprove} onRequestChanges={async (fb) => { const k = await getKeys(); if (!k) return; setCouncilRunning(true); const msg = messages.concat([{ role: 'user' as const, content: 'Council feedback: ' + fb }]); try { const r = await callAI(msg, k); setMessages(msg.concat([{ role: 'assistant', content: r }])); setCouncil(makeEmptyCouncil()); } catch(e) { setError(String(e)); } setCouncilRunning(false); }} onReject={handleReject} status={status} />
-    </div>
+      {showSpecViewer && specDoc && (
+        <SpecDocumentViewer doc={specDoc} projectId={pid} projectName={projectName} onApprove={handleSpecApprove} onReject={handleSpecReject} onClose={() => setShowSpecViewer(false)} />
+      )}
+      </div>
   );
 }
