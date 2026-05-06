@@ -335,7 +335,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
 
       <div style={{ width: 200, background: '#0C0C0E', display: 'flex', flexDirection: 'column', flexShrink: 0, overflowY: 'auto' }}>
-        <div style={{ padding: '14px 12px 6px', fontSize: 9, fontWeight: 700, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Pipeline</div>
+        <div style={{ padding: '12px 12px 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}><div style={{ fontSize: 9, fontWeight: 700, color: '#4A5568', textTransform: 'uppercase', letterSpacing: '0.12em' }}>Pipeline</div><button onClick={() => navigate('/')} style={{ fontSize: 10, color: '#6B7E96', background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px 6px', borderRadius: 4 }}>⇄ Projects</button></div>
         {STAGES.map(stage => {
           const isActive = stage.index === currentStage;
           const isDone = stage.index < currentStage;
