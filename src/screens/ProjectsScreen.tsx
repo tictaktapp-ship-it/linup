@@ -36,7 +36,7 @@ export default function ProjectsScreen() {
 
         {/* Hero */}
         <div style={{ width: '100%', maxWidth: 720, padding: '64px 32px 48px', textAlign: 'center' }}>
-          <img src="/assets/linup-icon.png" alt="LINUP" style={{ width: 64, height: 64, objectFit: 'contain', marginBottom: 24 }} />
+          <img src="/assets/linup-icon.png" alt="LINUP" style={{ width: 80, height: 80, objectFit: 'contain', marginBottom: 24 }} />
           <h1 style={{ fontSize: 36, fontWeight: 700, color: 'var(--color-text-primary)', letterSpacing: '-0.03em', margin: '0 0 16px', lineHeight: 1.1 }}>
             Turn your idea into a<br />
             <span style={{ color: 'var(--color-brand)' }}>production-ready app</span>
