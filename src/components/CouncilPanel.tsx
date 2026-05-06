@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { parseMockupBlocks, generateMockupSVG } from '../lib/mockupGenerator';
+import type { MockupSpec } from '../lib/mockupGenerator';
+
 
 export interface AgentResult {
   agent_id: string;
@@ -79,10 +82,73 @@ const VERDICT_ICON: Record<string, string> = {
   FAILED:     '✗',
 };
 
+
+// ── Mockup viewer component ───────────────────────────────────────────────────
+function MockupCard({ spec }: { spec: MockupSpec }) {
+  const [svg, setSvg] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const generate = async () => {
+    setLoading(true);
+    const result = await generateMockupSVG(spec);
+    setSvg(result);
+    setLoading(false);
+    setExpanded(true);
+  };
+
+  return (
+    <div style={{ border: '0.5px solid #E0E0DE', borderRadius: 8, overflow: 'hidden', background: '#fff', marginBottom: 8 }}>
+      <button onClick={() => expanded ? setExpanded(false) : (svg ? setExpanded(true) : generate())}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left' }}>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#1A1A18' }}>{spec.screen}</div>
+          <div style={{ fontSize: 10, color: '#8A8A82', marginTop: 2 }}>{spec.type} screen · {spec.sections.length} sections</div>
+        </div>
+        <span style={{ fontSize: 11, color: '#8C00B4', fontWeight: 600, flexShrink: 0, marginLeft: 8 }}>
+          {loading ? 'Generating...' : expanded ? 'Hide ▲' : svg ? 'Show ▼' : '✦ Generate'}
+        </span>
+      </button>
+      {loading && (
+        <div style={{ padding: '20px', textAlign: 'center', color: '#8A8A82', fontSize: 12 }}>
+          <div style={{ display: 'inline-block', width: 20, height: 20, border: '2px solid #E0E0DE', borderTopColor: '#8C00B4', borderRadius: '50%', animation: 'linup-spin 0.7s linear infinite', marginBottom: 8 }} />
+          <div>AI generating wireframe...</div>
+        </div>
+      )}
+      {expanded && svg && (
+        <div style={{ padding: '0 12px 12px' }}>
+          <div style={{ borderRadius: 6, overflow: 'hidden', border: '0.5px solid #E0E0DE', background: '#F4F4F2' }}
+            dangerouslySetInnerHTML={{ __html: svg }} />
+          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <button onClick={() => {
+              const blob = new Blob([svg], { type: 'image/svg+xml' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url; a.download = `${spec.screen.replace(/\s+/g, '-')}.svg`; a.click();
+            }} style={{ flex: 1, padding: '6px', fontSize: 11, background: '#F4F4F2', border: '0.5px solid #E0E0DE', borderRadius: 6, cursor: 'pointer', color: '#4A4A46' }}>
+              ↓ Download SVG
+            </button>
+            <button onClick={generate} style={{ padding: '6px 10px', fontSize: 11, background: '#F4F4F2', border: '0.5px solid #E0E0DE', borderRadius: 6, cursor: 'pointer', color: '#4A4A46' }}>
+              ↺ Regenerate
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 export default function CouncilPanel({ council, onApprove, onRequestChanges, onReject, status }: CouncilPanelProps) {
   const [view, setView] = useState<'progress' | 'review'>('progress');
   const [feedback, setFeedback] = useState('');
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
+  const [mockups, setMockups] = useState<MockupSpec[]>([]);
+
+  useEffect(() => {
+    if (council.gate_scorecard) {
+      const parsed = parseMockupBlocks(council.gate_scorecard);
+      if (parsed.length > 0) setMockups(parsed);
+    }
+  }, [council.gate_scorecard]);
 
   const done = council.agents.filter(a => !['RUNNING', 'PENDING'].includes(a.verdict));
   const running = council.agents.filter(a => a.verdict === 'RUNNING');
@@ -224,6 +290,16 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
                 </div>
               );
             })}
+
+            {/* Mockups section */}
+            {mockups.length > 0 && (
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#4A4A46', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Screen Wireframes ({mockups.length})
+                </div>
+                {mockups.map((m, i) => <MockupCard key={i} spec={m} />)}
+              </div>
+            )}
 
             {/* Feedback input */}
             <div style={{ paddingTop: 4 }}>
