@@ -321,10 +321,14 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     setMessages(augmented);
     setCouncilRunning(true);
     setCouncilTab('progress');
+    const key = await getKeys();
+    if (!key) { setCouncilRunning(false); return; }
+    const brief = augmented.map(m => m.role + ': ' + m.content).join('\n');
     invoke('run_council', {
       projectId: pid, stageIndex: currentStage, userBrief: brief,
       apiKeys: { groq: key },
     }).catch((e: unknown) => { setError(String(e)); setCouncilRunning(false); });
+    // Result handled by council-complete event listener
     // Result handled by council-complete event listener
   };
 
