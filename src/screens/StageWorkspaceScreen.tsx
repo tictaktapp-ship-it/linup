@@ -62,6 +62,7 @@ function makeEmptyCouncil(): CouncilState {
 
 export default function StageWorkspaceScreen() {
   const { projectId, stageIndex: stageParam } = useParams<{ projectId: string; stageIndex: string }>();
+  const navigate = useNavigate();
   const pid = projectId ?? '';
   const [currentStage, setCurrentStage] = useState(parseInt(stageParam ?? '0'));
   const [stageStatus, setStageStatus] = useState<StageStatus | null>(null);
