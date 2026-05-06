@@ -436,7 +436,7 @@ pub async fn run_council(
     }); // end spawn
     Ok(())
 }
-}
+
 
 #[tauri::command]
 pub fn get_council_result(project_id: String, stage_index: i64) -> Result<Option<StageCouncilResult>, String> {
