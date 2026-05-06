@@ -3,7 +3,7 @@ import { listProjects } from '../lib/supabaseService';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // invoke not needed for Supabase reads
-
+interface Project { id: string; name: string; description: string; stage_index: number; status: string; created_at: string; updated_at: string; }
 
 
 
