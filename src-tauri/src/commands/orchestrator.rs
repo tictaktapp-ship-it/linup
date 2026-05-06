@@ -251,7 +251,7 @@ pub async fn run_council(
     user_brief: String,
     api_keys: ApiKeys,
 ) -> Result<(), String> {
-    tauri::async_runtime::spawn(async move {
+    // async council execution
     let db = open_db()?;
     let key = &api_keys.groq;
     let (name, description): (String, String) = db.query_row(
@@ -433,7 +433,7 @@ pub async fn run_council(
         gate_scorecard: result.gate_scorecard.clone(),
         approved: result.approved,
     });
-    }); // end spawn
+    // end council execution
     Ok(())
 }
 
