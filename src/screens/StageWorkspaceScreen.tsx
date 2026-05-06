@@ -134,6 +134,19 @@ export default function StageWorkspaceScreen() {
       if (s.status === 'pending' && stage === 0 && messages.length === 0) startChat();
       const result = await invoke<{ agents: AgentResult[]; gate_verdict: string; gate_scorecard: string; approved: boolean; } | null>('get_council_result', { projectId: pid, stageIndex: stage });
       if (result) setCouncil({ ...result, running: false });
+        // Parse questions from saved scorecard
+        if (result && result.gate_scorecard && !result.approved) {
+          const qLines2: string[] = [];
+          let inQS = false;
+          result.gate_scorecard.split('\n').forEach((line: string) => {
+            const t = line.trim();
+            if (t.startsWith('## QUESTIONS REQUIRING ANSWERS') || t.startsWith('## Questions Requiring')) { inQS = true; return; }
+            if (inQS && t.startsWith('##')) { inQS = false; return; }
+            if (t.startsWith('QUESTION:')) qLines2.push(t.replace(/^QUESTION:\s*/, ''));
+            else if (inQS && /^\d+[\.\)]\s+.+/.test(t)) qLines2.push(t.replace(/^\d+[\.\)]\s+/, ''));
+          });
+          if (qLines2.length > 0) setCouncilQuestions(qLines2.map((l, idx) => ({ id: 'q' + idx, text: l.trim() })));
+        }
         // Load chat history
         try {
           const artifacts = await getCouncilArtifacts(pid, stage);
