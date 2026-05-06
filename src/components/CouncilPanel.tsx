@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { parseMockupBlocks, generateMockupSVG } from '../lib/mockupGenerator';
 import type { MockupSpec } from '../lib/mockupGenerator';
-
+import Questionnaire from './Questionnaire';
 
 export interface AgentResult {
   agent_id: string;
@@ -28,8 +28,8 @@ interface CouncilPanelProps {
   onRequestChanges: (feedback: string) => void;
   onReject: () => void;
   status: string;
-}
-
+  questions?: Array<{id:string;text:string}>;
+  onQuestionnaireSubmit?: (answers: Record<string,string>) => void;
 const ACTIVITY_LABELS: Record<string, string> = {
   clarifier:        'Understanding your requirements',
   spec_writer:      'Writing your product specification',
@@ -137,7 +137,12 @@ function MockupCard({ spec }: { spec: MockupSpec }) {
     </div>
   );
 }
-export default function CouncilPanel({ council, onApprove, onRequestChanges, onReject, status }: CouncilPanelProps) {
+
+function QuestionnaireInPanel({ questions, onSubmit }: { questions: Array<{id:string;text:string}>; onSubmit: (answers: Record<string,string>) => void }) {
+  return <Questionnaire questions={questions} passNumber={1} onSubmit={onSubmit} onSkip={() => {}} />;
+}
+
+export default function CouncilPanel({ council, onApprove, onRequestChanges, onReject, status, questions = [], onQuestionnaireSubmit }: CouncilPanelProps) {
   const [view, setView] = useState<'progress' | 'review'>('progress');
   const [feedback, setFeedback] = useState('');
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
@@ -254,6 +259,9 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
 
         {/* REVIEW TABLE VIEW */}
         {view === 'review' && total > 0 && !council.running && (
+        {questions.length > 0 && onQuestionnaireSubmit ? (
+          <QuestionnaireInPanel questions={questions} onSubmit={onQuestionnaireSubmit} />
+        ) : null}
           <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {council.agents.filter(a => a.verdict !== 'PENDING').map(agent => {
               const findings = getKeyFindings(agent);

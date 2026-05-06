@@ -36,7 +36,8 @@ export async function listProjects(): Promise<Project[]> {
   const { data, error } = await supabase
     .from('projects')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .throwOnError();
   if (error) throw error;
   return data ?? [];
 }
@@ -65,7 +66,7 @@ export async function getProject(id: string): Promise<Project | null> {
 }
 
 export async function updateProjectStage(id: string, stageIndex: number): Promise<void> {
-  await supabase.from('projects').update({ stage_index: stageIndex, updated_at: new Date().toISOString() }).eq('id', id);
+  await supabase.from('projects').update({ stage_index: stageIndex }).eq('id', id);
 }
 
 export async function updateProjectBrand(id: string, brand: {
@@ -152,4 +153,14 @@ export async function saveSpecArtifact(projectId: string, content: string, gaps:
     all_questions: questions,
     version: '0.1.0',
   });
+}
+// Store and restore Supabase session for the JS client
+// Called after Rust auth completes and passes the token to the frontend
+export async function restoreSession(accessToken: string, refreshToken: string): Promise<void> {
+  await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+}
+
+export async function getStoredSession() {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session;
 }
