@@ -286,7 +286,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         {councilRunning && <div style={{ padding: '10px 20px', background: '#EEF2FF', borderBottom: '1px solid #C7D2FE', fontSize: 13, color: '#4338CA', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}><span style={spin} /> AI council reviewing your brief — watch the panel on the right.</div>}
 
         <div ref={chatRef} style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-          {messages.length === 0 && !chatRunning && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80%', gap: 12 }}><div style={{ fontSize: 40 }}>{STAGES[currentStage]?.icon}</div><div style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-primary)' }}>Starting {STAGES[currentStage]?.name}...</div></div>}
+          {messages.length === 0 && !chatRunning && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80%', gap: 12 }}><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={STAGE_COLOURS[currentStage]} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={STAGE_ICONS[currentStage]} /></svg><div style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-primary)' }}>Starting {STAGES[currentStage]?.name}...</div></div>}
           {messages.map((msg, i) => (
             <div key={i} style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
               <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 4, paddingLeft: 4, paddingRight: 4 }}>{msg.role === 'user' ? 'You' : 'LINUP'}</div>
