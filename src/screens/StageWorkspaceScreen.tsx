@@ -106,7 +106,18 @@ export default function StageWorkspaceScreen() {
         });
         await upsertStageRun(pid, currentStage, result?.approved ? 'awaiting_approval' : 'gate_failed');
         const gateText = result?.gate_scorecard ?? '';
-        const qLines = gateText.split('\n').filter((l: string) => l.trim().startsWith('QUESTION:'));
+        const qLines: string[] = [];
+        // Parse questions from two formats:
+        // 1. Lines starting with 'QUESTION:'
+        // 2. Numbered list under '## QUESTIONS REQUIRING ANSWERS'
+        let inQSection = false;
+        gateText.split('\n').forEach((line: string) => {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('## QUESTIONS REQUIRING ANSWERS') || trimmed.startsWith('## Questions Requiring')) { inQSection = true; return; }
+          if (inQSection && trimmed.startsWith('##')) { inQSection = false; return; }
+          if (trimmed.startsWith('QUESTION:')) { qLines.push(trimmed.replace(/^QUESTION:\s*/, '')); }
+          else if (inQSection && /^\d+[\.\)]\s+.+/.test(trimmed)) { qLines.push(trimmed.replace(/^\d+[\.\)]\s+/, '')); }
+        });
         if (qLines.length > 0 && !result?.approved && passNumber < 3) {
           const qs = qLines.map((l: string, idx: number) => ({ id: 'q' + idx, text: l.replace(/^QUESTION:\s*/, '').trim() }));
           setCouncilQuestions(qs);
@@ -216,7 +227,15 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         });
         await upsertStageRun(pid, currentStage, result?.approved ? 'awaiting_approval' : 'gate_failed');
         const gateText = result?.gate_scorecard ?? '';
-        const qLines = gateText.split('\n').filter((l: string) => l.trim().startsWith('QUESTION:'));
+        const qLines: string[] = [];
+        let inQSection2 = false;
+        gateText.split('\n').forEach((line: string) => {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('## QUESTIONS REQUIRING ANSWERS') || trimmed.startsWith('## Questions Requiring')) { inQSection2 = true; return; }
+          if (inQSection2 && trimmed.startsWith('##')) { inQSection2 = false; return; }
+          if (trimmed.startsWith('QUESTION:')) { qLines.push(trimmed.replace(/^QUESTION:\s*/, '')); }
+          else if (inQSection2 && /^\d+[\.\)]\s+.+/.test(trimmed)) { qLines.push(trimmed.replace(/^\d+[\.\)]\s+/, '')); }
+        });
         if (qLines.length > 0 && !result?.approved && passNumber < 3) {
           const qs = qLines.map((l: string, idx: number) => ({ id: 'q' + idx, text: l.replace(/^QUESTION:\s*/, '').trim() }));
           setCouncilQuestions(qs);

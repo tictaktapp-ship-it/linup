@@ -150,7 +150,7 @@ export default function CouncilPanel({
   questions = [],
   onQuestionnaireSubmit,
 }: CouncilPanelProps) {
-  const [tab, setTab] = useState<'progress' | 'review'>('progress');
+  const [tab, setTab] = useState<'progress' | 'review'>(questions.length > 0 ? 'review' : 'progress');
   const [feedback, setFeedback] = useState('');
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const [mockups, setMockups] = useState<MockupSpec[]>([]);
