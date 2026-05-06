@@ -298,12 +298,12 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     const key = await getKeys(); if (!key) return; setCouncilRunning(true);
     setCouncil({ agents: [], gate_verdict: '', gate_scorecard: '', approved: false, running: true });
     setError(null);
-    const brief = messages.map(m => (m.role === 'user' ? 'User: ' : 'LINUP: ') + m.content).join('\n\n'); try {
-      invoke('run_council', {
-        projectId: pid, stageIndex: currentStage, userBrief: brief,
-        apiKeys: { groq: key },
-      }).catch((e: unknown) => { setError(String(e)); setCouncilRunning(false); });
-      // Result handled by council-complete event listener
+    const brief = messages.map(m => (m.role === 'user' ? 'User: ' : 'LINUP: ') + m.content).join('\n\n');
+    invoke('run_council', {
+      projectId: pid, stageIndex: currentStage, userBrief: brief,
+      apiKeys: { groq: key },
+    }).catch((e: unknown) => { setError(String(e)); setCouncilRunning(false); });
+    // Result handled by council-complete event listener
   };
 
   const handleQuestionnaireSubmit = async (answers: Record<string, string>) => {
@@ -321,16 +321,16 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     setMessages(augmented);
     setCouncilRunning(true);
     setCouncilTab('progress');
-    try {
-      const key = await getKeys();
-      if (!key) return;
-      const brief = augmented.map(m => m.role + ': ' + m.content).join('\n');
-      invoke('run_council', {
-        projectId: pid, stageIndex: currentStage, userBrief: brief,
-        apiKeys: { groq: key },
-      }).catch((e: unknown) => { setError(String(e)); setCouncilRunning(false); });
-      // Result handled by council-complete event listener
+    invoke('run_council', {
+      projectId: pid, stageIndex: currentStage, userBrief: brief,
+      apiKeys: { groq: key },
+    }).catch((e: unknown) => { setError(String(e)); setCouncilRunning(false); });
+    // Result handled by council-complete event listener
   };
+
+
+
+
 
 
   const handleApprove = async () => {
