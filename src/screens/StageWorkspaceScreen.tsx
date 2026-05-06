@@ -65,6 +65,9 @@ export default function StageWorkspaceScreen() {
   const pid = projectId ?? '';
   const [currentStage, setCurrentStage] = useState(parseInt(stageParam ?? '0'));
   const [stageStatus, setStageStatus] = useState<StageStatus | null>(null);
+  const [passNumber, setPassNumber] = useState(1);
+  const [councilQuestions, setCouncilQuestions] = useState<Array<{id:string;text:string}>>([]);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [chatRunning, setChatRunning] = useState(false);

@@ -160,7 +160,7 @@ interface QuestionnaireProps {
 export default function Questionnaire({ questions, passNumber, onSubmit, onSkip }: QuestionnaireProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const answeredCount = Object.keys(answers).length;
-  const allAnswered = answeredCount === questions.length;
+
 
   const handleAnswer = (id: string, answer: string) => {
     setAnswers(prev => ({ ...prev, [id]: answer }));
