@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
-import { saveCouncilArtifact, getCouncilArtifacts, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
+import { saveCouncilArtifact, getCouncilArtifacts, saveSpecArtifact, getLatestArtifact, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
 
@@ -60,6 +60,44 @@ function makeEmptyCouncil(): CouncilState {
   return { agents: [], gate_verdict: '', gate_scorecard: '', approved: false, running: false };
 }
 
+function SpecViewer({ doc }: { doc: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [search, setSearch] = useState('');
+  const sections = doc.split(/\n(?=##\s)/).filter(Boolean);
+  const filtered = search.trim() ? sections.filter(s => s.toLowerCase().includes(search.toLowerCase())) : sections;
+  return (
+    <div style={{ border: '1.5px solid var(--color-brand)', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+      <button onClick={() => setExpanded(e => !e)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: 'none', background: 'linear-gradient(135deg, #F5F0FF 0%, #EEF2FF 100%)', cursor: 'pointer', textAlign: 'left' }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-brand)' }}>📋 Standard Specification Document</div>
+          <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>{sections.length} sections · Version 0.1.0 · Draft — click to {expanded ? 'collapse' : 'read'}</div>
+        </div>
+        <span style={{ fontSize: 12, color: 'var(--color-brand)', fontWeight: 700 }}>{expanded ? 'Collapse ▲' : 'Read ▼'}</span>
+      </button>
+      {expanded && (
+        <div>
+          <div style={{ padding: '10px 16px', borderBottom: '0.5px solid #E5E7EB', background: '#FAFAFA' }}>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder='Search sections...' style={{ width: '100%', padding: '6px 10px', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div style={{ maxHeight: 600, overflowY: 'auto', padding: '12px 16px' }}>
+            {filtered.map((section, i) => {
+              const lines2 = section.split('\n');
+              const heading = lines2[0].replace(/^#+\s*/, '');
+              const body = lines2.slice(1).join('\n').trim();
+              return (
+                <div key={i} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < filtered.length - 1 ? '0.5px solid #F3F4F6' : 'none' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-brand)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{heading}</div>
+                  <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{body}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StageWorkspaceScreen() {
   const { projectId, stageIndex: stageParam } = useParams<{ projectId: string; stageIndex: string }>();
   const navigate = useNavigate();
@@ -74,6 +112,9 @@ export default function StageWorkspaceScreen() {
   const [chatRunning, setChatRunning] = useState(false);
   const [councilRunning, setCouncilRunning] = useState(false);
   const [councilTab, setCouncilTab] = useState<'progress' | 'review'>('progress');
+  const [specDoc, setSpecDoc] = useState<string | null>(null);
+  const [specBuilding, setSpecBuilding] = useState(false);
+  const [specAgents, setSpecAgents] = useState<Array<{id:string;role:string;done:boolean}>>([]);
   const [council, setCouncil] = useState<CouncilState>(makeEmptyCouncil());
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState('');
@@ -93,6 +134,13 @@ export default function StageWorkspaceScreen() {
         try {
           const artifacts = await getCouncilArtifacts(pid, stage);
           const chatArtifact = artifacts?.find((a: any) => a.artifact_type === 'chat_history');
+          // Load spec doc if on stage 1+
+          if (stage >= 1) {
+            try {
+              const specArtifact = await getLatestArtifact(pid, 0, 'standard_specification');
+              if (specArtifact?.content) setSpecDoc(specArtifact.content);
+            } catch { /* no spec yet */ }
+          }
           if (chatArtifact?.content) {
             const saved = JSON.parse(chatArtifact.content);
             if (Array.isArray(saved) && saved.length > 0) setMessages(saved as Message[]);
@@ -155,7 +203,15 @@ export default function StageWorkspaceScreen() {
       setCouncil(prev => ({ ...prev, running: false, gate_verdict: ev.payload.verdict, gate_scorecard: ev.payload.scorecard, approved: ev.payload.approved }));
       setCouncilRunning(false);
     });
-    return () => { u1.then(f => f()); u2.then(f => f()); u3.then(f => f()); };
+      const u4 = listen<{project_id:string;agent_id:string;role:string}>('spec-agent-started', ev => {
+        if (ev.payload.project_id !== pid) return;
+        setSpecAgents(prev => [...prev.filter(a => a.id !== ev.payload.agent_id), { id: ev.payload.agent_id, role: ev.payload.role, done: false }]);
+      });
+      const u5 = listen<{project_id:string;agent_id:string;role:string;verdict:string}>('spec-agent-completed', ev => {
+        if (ev.payload.project_id !== pid) return;
+        setSpecAgents(prev => prev.map(a => a.id === ev.payload.agent_id ? { ...a, done: true } : a));
+      });
+      return () => { u1.then(f => f()); u2.then(f => f()); u3.then(f => f()); u4.then(f => f()); u5.then(f => f()); };
   }, [currentStage, pid]);
 
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [messages, chatRunning]);
@@ -323,12 +379,18 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         }]);
 
         // Run spec council in background
+          setSpecBuilding(true); setSpecAgents([]);
         invoke('run_spec_council', {
           projectId: pid,
           productDirection,
           apiKeys: { openrouter: key },
-        }).then(() => {
+          }).then(async (specResult: any) => {
           setMessages(prev => [...prev, {
+            if (specResult?.assembled_spec) {
+              setSpecDoc(specResult.assembled_spec);
+              setSpecBuilding(false);
+              try { await saveSpecArtifact(pid, specResult.assembled_spec, specResult.all_gaps ?? [], specResult.all_questions ?? []); } catch(e) { console.error(e); }
+            }
             role: 'assistant' as const,
             content: '📄 Your Standard Specification Document is ready. The team has populated all 28 sections. Please review and sign off to lock the specification — this becomes the law for all development stages.'
           }]);
@@ -417,6 +479,25 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
 
         <div ref={chatRef} style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
           {messages.length === 0 && !chatRunning && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80%', gap: 12 }}><div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--color-brand-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>✦</div><div style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-primary)' }}>Starting {STAGES[currentStage]?.name}...</div></div>}
+            {/* Spec building progress - Stage 1+ */}
+            {currentStage >= 1 && specBuilding && (
+              <div style={{ padding: '16px', background: '#F0F4FF', borderRadius: 10, marginBottom: 16, border: '1px solid #C7D2FE' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#4338CA', marginBottom: 10 }}>⚙ 22-Member Specification Team is building your document...</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {specAgents.map(a => (
+                    <div key={a.id} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 20, background: a.done ? '#DCFCE7' : '#E0E7FF', color: a.done ? '#166534' : '#3730A3', fontWeight: 500 }}>
+                      {a.done ? '✓' : '◉'} {a.role}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Spec document viewer - Stage 1+ */}
+            {currentStage >= 1 && specDoc && !specBuilding && (
+              <div style={{ marginBottom: 20 }}>
+                <SpecViewer doc={specDoc} />
+              </div>
+            )}
           {messages.map((msg, i) => (
             <div key={i} style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
               <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 4, paddingLeft: 4, paddingRight: 4 }}>{msg.role === 'user' ? 'You' : 'LINUP'}</div>
