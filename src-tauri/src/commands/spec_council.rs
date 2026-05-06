@@ -87,7 +87,10 @@ async fn call_spec_agent(
     system: &str,
     user_msg: &str,
 ) -> Result<String, String> {
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(180))
+        .build()
+        .unwrap_or_default();
     let body = serde_json::json!({
         "model": MODEL,
         "max_tokens": 4096,

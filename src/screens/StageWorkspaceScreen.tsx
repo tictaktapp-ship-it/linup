@@ -215,7 +215,30 @@ export default function StageWorkspaceScreen() {
         if (ev.payload.project_id !== pid) return;
         setSpecAgents(prev => prev.map(a => a.id === ev.payload.agent_id ? { ...a, done: true } : a));
       });
-      return () => { u1.then(f => f()); u2.then(f => f()); u3.then(f => f()); u4.then(f => f()); u5.then(f => f()); };
+      const u6 = listen<{project_id:string;stage_index:number;gate_verdict:string;gate_scorecard:string;approved:boolean}>('council-complete', async ev => {
+        if (ev.payload.project_id !== pid || ev.payload.stage_index !== currentStage) return;
+        const synth: CouncilState = { agents: [], gate_verdict: ev.payload.gate_verdict, gate_scorecard: ev.payload.gate_scorecard, approved: ev.payload.approved, running: false };
+        setCouncil(prev => ({ ...prev, ...synth }));
+        setCouncilRunning(false);
+        const gateText = ev.payload.gate_scorecard ?? '';
+        try {
+          await saveCouncilArtifact({ project_id: pid, user_id: '', stage_index: currentStage, artifact_type: 'council_result', content: gateText });
+          await upsertStageRun(pid, currentStage, ev.payload.approved ? 'awaiting_approval' : 'gate_failed');
+        } catch(e) { console.error(e); }
+        const qLines: string[] = [];
+        let inQSection2 = false;
+        gateText.split('\n').forEach((line: string) => {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('## QUESTIONS REQUIRING ANSWERS') || trimmed.startsWith('## Questions Requiring')) { inQSection2 = true; return; }
+          if (inQSection2 && trimmed.startsWith('##')) { inQSection2 = false; return; }
+          if (trimmed.startsWith('QUESTION:')) { qLines.push(trimmed.replace(/^QUESTION:\s*/, '')); }
+          else if (inQSection2 && /^\d+[\.\)]\s+.+/.test(trimmed)) { qLines.push(trimmed.replace(/^\d+[\.\)]\s+/, '')); }
+        });
+        if (qLines.length > 0 && !ev.payload.approved) {
+          setCouncilQuestions(qLines.map((l, idx) => ({ id: 'q' + idx, text: l.trim() })));
+        }
+      });
+      return () => { u1.then(f => f()); u2.then(f => f()); u3.then(f => f()); u4.then(f => f()); u5.then(f => f()); u6.then(f => f()); };
   }, [currentStage, pid]);
 
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [messages, chatRunning]);
@@ -276,47 +299,11 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     setCouncil({ agents: [], gate_verdict: '', gate_scorecard: '', approved: false, running: true });
     setError(null);
     const brief = messages.map(m => (m.role === 'user' ? 'User: ' : 'LINUP: ') + m.content).join('\n\n'); try {
-      const result = await invoke<{ agents: AgentResult[]; gate_verdict: string; gate_scorecard: string; approved: boolean; }>('run_council', {
+      invoke('run_council', {
         projectId: pid, stageIndex: currentStage, userBrief: brief,
         apiKeys: { groq: key },
-      });
-      setCouncil({ ...result, running: false });
-      // Save to Supabase
-      try {
-        await saveCouncilArtifact({
-          project_id: pid,
-          user_id: '',
-          stage_index: currentStage,
-          artifact_type: 'council_result',
-          content: JSON.stringify(result?.agents ?? []),
-        });
-        await saveCouncilArtifact({
-          project_id: pid,
-          user_id: '',
-          stage_index: currentStage,
-          artifact_type: 'product_spec',
-          content: result?.gate_scorecard ?? '',
-        });
-        await upsertStageRun(pid, currentStage, result?.approved ? 'awaiting_approval' : 'gate_failed');
-        const gateText = result?.gate_scorecard ?? '';
-        const qLines: string[] = [];
-        let inQSection2 = false;
-        gateText.split('\n').forEach((line: string) => {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('## QUESTIONS REQUIRING ANSWERS') || trimmed.startsWith('## Questions Requiring')) { inQSection2 = true; return; }
-          if (inQSection2 && trimmed.startsWith('##')) { inQSection2 = false; return; }
-          if (trimmed.startsWith('QUESTION:')) { qLines.push(trimmed.replace(/^QUESTION:\s*/, '')); }
-          else if (inQSection2 && /^\d+[\.\)]\s+.+/.test(trimmed)) { qLines.push(trimmed.replace(/^\d+[\.\)]\s+/, '')); }
-        });
-        if (qLines.length > 0 && !result?.approved && passNumber < 3) {
-          const qs = qLines.map((l: string, idx: number) => ({ id: 'q' + idx, text: l.replace(/^QUESTION:\s*/, '').trim() }));
-          setCouncilQuestions(qs);
-          
-        }
-      } catch (e) { console.error('Supabase save error:', e); }
-      await loadStage(currentStage);
-    } catch (e) { setError(String(e)); setCouncil(prev => ({ ...prev, running: false })); }
-    setCouncilRunning(false);
+      }).catch((e: unknown) => { setError(String(e)); setCouncilRunning(false); });
+      // Result handled by council-complete event listener
   };
 
   const handleQuestionnaireSubmit = async (answers: Record<string, string>) => {
@@ -338,24 +325,11 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
       const key = await getKeys();
       if (!key) return;
       const brief = augmented.map(m => m.role + ': ' + m.content).join('\n');
-      const result = await invoke<CouncilState>('run_council', {
+      invoke('run_council', {
         projectId: pid, stageIndex: currentStage, userBrief: brief,
         apiKeys: { groq: key },
-      });
-      if (result) {
-        setCouncil({ ...result, running: false });
-        setCouncilTab('review');
-        try {
-          await saveCouncilArtifact({
-            project_id: pid, user_id: '',
-            stage_index: currentStage,
-            artifact_type: 'council_result_pass' + passNumber,
-            content: JSON.stringify(result.agents),
-          });
-        } catch(e) { console.error(e); }
-      }
-    } catch(e) { setError(String(e)); }
-    finally { setCouncilRunning(false); }
+      }).catch((e: unknown) => { setError(String(e)); setCouncilRunning(false); });
+      // Result handled by council-complete event listener
   };
 
 

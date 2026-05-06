@@ -127,7 +127,10 @@ fn check_gate_integrity(results: &[AgentResult], gate_output: &str) -> (String, 
 }
 
 async fn call_groq(api_key: &str, model: &str, system: &str, user_message: &str) -> Result<String, String> {
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(180))
+        .build()
+        .unwrap_or_default();
     let body = serde_json::json!({
         "model": model,
         "max_tokens": 4096,
@@ -231,6 +234,15 @@ async fn run_agent(
     agent_result
 }
 
+#[derive(Clone, Serialize)]
+struct CouncilCompletePayload {
+    project_id: String,
+    stage_index: i64,
+    gate_verdict: String,
+    gate_scorecard: String,
+    approved: bool,
+}
+
 #[tauri::command]
 pub async fn run_council(
     app: AppHandle,
@@ -238,7 +250,8 @@ pub async fn run_council(
     stage_index: i64,
     user_brief: String,
     api_keys: ApiKeys,
-) -> Result<StageCouncilResult, String> {
+) -> Result<(), String> {
+    tauri::async_runtime::spawn(async move {
     let db = open_db()?;
     let key = &api_keys.groq;
     let (name, description): (String, String) = db.query_row(
@@ -405,14 +418,24 @@ pub async fn run_council(
         params![run_id, project_id, stage_index, status, created_at],
     ).map_err(|e| e.to_string())?;
 
-    Ok(StageCouncilResult {
-        project_id,
+    let result = StageCouncilResult {
+        project_id: project_id.clone(),
         stage_index,
         agents: results,
         gate_verdict: if approved { "APPROVED".to_string() } else { "BLOCKED".to_string() },
-        gate_scorecard: enforced_output,
+        gate_scorecard: enforced_output.clone(),
         approved,
-    })
+    };
+    let _ = app.emit("council-complete", CouncilCompletePayload {
+        project_id: result.project_id.clone(),
+        stage_index: result.stage_index,
+        gate_verdict: result.gate_verdict.clone(),
+        gate_scorecard: result.gate_scorecard.clone(),
+        approved: result.approved,
+    });
+    }); // end spawn
+    Ok(())
+}
 }
 
 #[tauri::command]
