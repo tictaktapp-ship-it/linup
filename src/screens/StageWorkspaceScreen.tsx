@@ -385,15 +385,15 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           productDirection,
           apiKeys: { openrouter: key },
           }).then(async (specResult: any) => {
-          setMessages(prev => [...prev, {
             if (specResult?.assembled_spec) {
               setSpecDoc(specResult.assembled_spec);
               setSpecBuilding(false);
               try { await saveSpecArtifact(pid, specResult.assembled_spec, specResult.all_gaps ?? [], specResult.all_questions ?? []); } catch(e) { console.error(e); }
             }
-            role: 'assistant' as const,
-            content: '📄 Your Standard Specification Document is ready. The team has populated all 28 sections. Please review and sign off to lock the specification — this becomes the law for all development stages.'
-          }]);
+            setMessages(prev => [...prev, {
+              role: 'assistant' as const,
+              content: 'Your Standard Specification Document is ready. The team has populated all 28 sections. Please review and sign off to lock the specification.'
+            }]);
         }).catch((e: unknown) => {
           setError('Spec team error: ' + String(e));
         });
