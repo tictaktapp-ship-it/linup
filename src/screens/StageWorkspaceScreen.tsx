@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
-import { saveCouncilArtifact, upsertStageRun, updateProjectStage, updateProjectBrand } from '../lib/supabaseService';
+import { saveCouncilArtifact, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
 
@@ -89,16 +89,16 @@ export default function StageWorkspaceScreen() {
           user_id: '',
           stage_index: currentStage,
           artifact_type: 'council_result',
-          content: JSON.stringify(result.agents),
+          content: JSON.stringify(result?.agents ?? []),
         });
         await saveCouncilArtifact({
           project_id: pid,
           user_id: '',
           stage_index: currentStage,
           artifact_type: 'product_spec',
-          content: result.gate_scorecard,
+          content: result?.gate_scorecard ?? '',
         });
-        await upsertStageRun(pid, currentStage, result.approved ? 'awaiting_approval' : 'gate_failed');
+        await upsertStageRun(pid, currentStage, result?.approved ? 'awaiting_approval' : 'gate_failed');
       } catch (e) { console.error('Supabase save error:', e); }
     } catch (e) { setError(String(e)); }
   };
@@ -192,16 +192,16 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           user_id: '',
           stage_index: currentStage,
           artifact_type: 'council_result',
-          content: JSON.stringify(result.agents),
+          content: JSON.stringify(result?.agents ?? []),
         });
         await saveCouncilArtifact({
           project_id: pid,
           user_id: '',
           stage_index: currentStage,
           artifact_type: 'product_spec',
-          content: result.gate_scorecard,
+          content: result?.gate_scorecard ?? '',
         });
-        await upsertStageRun(pid, currentStage, result.approved ? 'awaiting_approval' : 'gate_failed');
+        await upsertStageRun(pid, currentStage, result?.approved ? 'awaiting_approval' : 'gate_failed');
       } catch (e) { console.error('Supabase save error:', e); }
       await loadStage(currentStage);
     } catch (e) { setError(String(e)); setCouncil(prev => ({ ...prev, running: false })); }

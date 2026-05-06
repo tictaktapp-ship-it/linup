@@ -1,16 +1,16 @@
-import { listProjects, createProject } from '../lib/supabaseService';
-import type { Project } from '../lib/supabaseService';
+import { listProjects } from '../lib/supabaseService';
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // invoke not needed for Supabase reads
 
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-  stage_index: number;
-}
+
+
+
+
+
+
+
 
 const FEATURES = [
   { icon: '🤖', title: 'AI Council', desc: '13 specialist agents review your brief simultaneously — security, ethics, market research, legal, and more.' },

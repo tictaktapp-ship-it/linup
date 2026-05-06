@@ -1,4 +1,4 @@
-import { createProject } from '../lib/supabaseService';
+// createProject import removed — project routing via Rust invoke
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -29,8 +29,10 @@ export default function OnboardingFlow() {
         stack: 'web',
         budgetCap: 10.0,
       });
+      // Save to Supabase after local creation
+      try { const { createProject: sbCreate } = await import('../lib/supabaseService'); await sbCreate(name, description); } catch(e) { console.warn('Supabase sync failed:', e); }
       window.location.hash = '/project/' + projectId + '/stage/0';
-    } catch (e) {
+
       setError('Failed to create project: ' + String(e));
       setCreating(false);
     }
