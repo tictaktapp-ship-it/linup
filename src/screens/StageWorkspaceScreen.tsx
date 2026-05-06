@@ -6,19 +6,20 @@ import CouncilPanel from '../components/CouncilPanel';
 import { saveCouncilArtifact, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
+import Questionnaire from '../components/Questionnaire';
 
-const SYSTEM_PROMPT = `You are LINUP, an expert product manager. The user has already provided their app name and description. Your job is to deepen that context through conversation — do NOT ask them to re-explain what they already told you in the brief.
+const SYSTEM_PROMPT = `You are LINUP, an expert product manager and product strategist. The user has already provided their app name and description. Your job is to deepen context through focused conversation — do NOT ask them to re-explain what they already told you.
 
-PHASE 1 — Requirements (2-3 exchanges max): Ask targeted follow-up questions based on what is still unclear. Cover: who the end users are and their technical level, the core workflow step by step, and any constraints (integrations, compliance, scale). Never ask generic questions like "what is your app" or "who are your users" if the brief already says. Adapt your questions to the app type — a B2C consumer app needs different questions than a developer tool or internal dashboard.
+Ask targeted follow-up questions across 2-3 exchanges max. Cover only what is still unclear:
+- Who the end users are and their technical level
+- The core workflow step by step
+- Key constraints (compliance, integrations, scale, budget)
+- The primary problem this app solves and why existing solutions fail
 
-PHASE 2 — Brand (one message, after requirements are clear): Ask these four questions together:
-1. Do you have a primary brand colour? Hex code, describe it (e.g. deep navy), or say not yet.
-2. Do you have an existing logo or wordmark? Yes or no.
-3. How should the app feel? Professional and corporate / Friendly and approachable / Bold and modern / Calm and trustworthy.
-4. Font preference: Clean and minimal / Elegant serif / Technical / No preference.
-
-After brand questions are answered, confirm you have what you need and ask them to click Deploy AI Council.`;
-
+STRICT RULES:
+- Do NOT ask about branding, colours, fonts, or logo. The AI council's Market Researcher handles competitive analysis and the Design Council handles brand — the user does not need to know this yet.
+- Never ask generic questions already answered in the brief.
+- Once you have enough context (2-3 exchanges), tell the user you have what you need and ask them to click Deploy AI Council to begin.`;
 
 
 
@@ -74,6 +75,7 @@ export default function StageWorkspaceScreen() {
   const [openaiKey, setOpenaiKey] = useState('');
   const [showKeyInput, setShowKeyInput] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadStage = async (stage: number) => {
     try {
@@ -99,6 +101,13 @@ export default function StageWorkspaceScreen() {
           content: result?.gate_scorecard ?? '',
         });
         await upsertStageRun(pid, currentStage, result?.approved ? 'awaiting_approval' : 'gate_failed');
+        const gateText = result?.gate_scorecard ?? '';
+        const qLines = gateText.split('\n').filter((l: string) => l.trim().startsWith('QUESTION:'));
+        if (qLines.length > 0 && !result?.approved && passNumber < 3) {
+          const qs = qLines.map((l: string, idx: number) => ({ id: 'q' + idx, text: l.replace(/^QUESTION:\s*/, '').trim() }));
+          setCouncilQuestions(qs);
+          setShowQuestionnaire(true);
+        }
       } catch (e) { console.error('Supabase save error:', e); }
     } catch (e) { setError(String(e)); }
   };
@@ -202,11 +211,56 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           content: result?.gate_scorecard ?? '',
         });
         await upsertStageRun(pid, currentStage, result?.approved ? 'awaiting_approval' : 'gate_failed');
+        const gateText = result?.gate_scorecard ?? '';
+        const qLines = gateText.split('\n').filter((l: string) => l.trim().startsWith('QUESTION:'));
+        if (qLines.length > 0 && !result?.approved && passNumber < 3) {
+          const qs = qLines.map((l: string, idx: number) => ({ id: 'q' + idx, text: l.replace(/^QUESTION:\s*/, '').trim() }));
+          setCouncilQuestions(qs);
+          setShowQuestionnaire(true);
+        }
       } catch (e) { console.error('Supabase save error:', e); }
       await loadStage(currentStage);
     } catch (e) { setError(String(e)); setCouncil(prev => ({ ...prev, running: false })); }
     setCouncilRunning(false);
   };
+
+  const handleQuestionnaireSubmit = async (answers: Record<string, string>) => {
+    setShowQuestionnaire(false);
+    const nextPass = passNumber + 1;
+    setPassNumber(nextPass);
+    const answerContext = councilQuestions
+      .map(q => 'Q: ' + q.text + '\nA: ' + (answers[q.id] ?? 'No answer provided'))
+      .join('\n\n');
+    const extraMsg = {
+      role: 'assistant' as const,
+      content: 'Council pass ' + passNumber + ' complete. Additional answers:\n\n' + answerContext,
+    };
+    const augmented = [...messages, extraMsg];
+    setMessages(augmented);
+    setCouncilRunning(true);
+    try {
+      const key = await getKeys();
+      if (!key) return;
+      const brief = augmented.map(m => m.role + ': ' + m.content).join('\n');
+      const result = await invoke<CouncilState>('run_council', {
+        projectId: pid, stageIndex: currentStage,
+        brief, apiKeys: { openrouter: key },
+      });
+      if (result) {
+        setCouncil({ ...result, running: false });
+        try {
+          await saveCouncilArtifact({
+            project_id: pid, user_id: '',
+            stage_index: currentStage,
+            artifact_type: 'council_result_pass' + passNumber,
+            content: JSON.stringify(result.agents),
+          });
+        } catch(e) { console.error(e); }
+      }
+    } catch(e) { setError(String(e)); }
+    finally { setCouncilRunning(false); }
+  };
+
 
   const handleApprove = async () => {
     try {
@@ -345,12 +399,12 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         {status !== 'approved' && council.agents.length === 0 && (
           <div style={{ padding: '12px 16px', borderTop: '0.5px solid var(--color-border-tertiary)', display: 'flex', gap: 8, flexShrink: 0 }}>
             <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Answer LINUP's questions... (Enter to send)" rows={2} disabled={chatRunning || councilRunning} style={{ flex: 1, padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', borderRadius: 8, fontSize: 14, resize: 'none', fontFamily: 'system-ui', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', outline: 'none' }} />
-            <button onClick={sendMessage} disabled={chatRunning || councilRunning || !input.trim()} style={{ padding: '0 18px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Send</button>
+            <input ref={fileInputRef} type='file' accept='.pdf,.docx,.txt,.png,.jpg' style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) setInput(prev => prev + ' [File: ' + f.name + ']'); }} /><button onClick={() => fileInputRef.current?.click()} style={{ padding: '0 12px', background: '#F4F4F2', border: '1px solid #E0E0DE', borderRadius: 8, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>📎</button><button onClick={sendMessage} disabled={chatRunning || councilRunning || !input.trim()} style={{ padding: '0 18px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Send</button>
           </div>
         )}
       </div>
 
-      <CouncilPanel council={council} onApprove={handleApprove} onRequestChanges={async (fb) => { const k = await getKeys(); if (!k) return; setCouncilRunning(true); const msg = messages.concat([{ role: 'user' as const, content: 'Council feedback: ' + fb }]); try { const r = await callAI(msg, k); setMessages(msg.concat([{ role: 'assistant', content: r }])); setCouncil(makeEmptyCouncil()); } catch(e) { setError(String(e)); } setCouncilRunning(false); }} onReject={handleReject} status={status} />
+      {showQuestionnaire ? (<Questionnaire questions={councilQuestions} passNumber={passNumber} onSubmit={handleQuestionnaireSubmit} onSkip={() => setShowQuestionnaire(false)} />) : (<CouncilPanel council={council} onApprove={handleApprove} onRequestChanges={async (fb) => { const k = await getKeys(); if (!k) return; setCouncilRunning(true); const msg = messages.concat([{ role: 'user' as const, content: 'Council feedback: ' + fb }]); try { const r = await callAI(msg, k); setMessages(msg.concat([{ role: 'assistant', content: r }])); setCouncil(makeEmptyCouncil()); } catch(e) { setError(String(e)); } setCouncilRunning(false); }} onReject={handleReject} status={status} />
     </div>
   );
 }

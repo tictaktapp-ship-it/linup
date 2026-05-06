@@ -176,7 +176,7 @@ export default function CouncilPanel({ council, onApprove, onRequestChanges, onR
 
   return (
     <div style={{
-      width: 380, borderLeft: '0.5px solid var(--color-border-tertiary)',
+      width: 480, borderLeft: '0.5px solid var(--color-border-tertiary)',
       display: 'flex', flexDirection: 'column', background: '#FAFAFA',
     }}>
 
