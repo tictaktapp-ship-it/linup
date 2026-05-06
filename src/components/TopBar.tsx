@@ -7,16 +7,26 @@ export default function TopBar() {
       height: 48, display: 'flex', alignItems: 'center',
       justifyContent: 'space-between', padding: '0 20px',
       borderBottom: '0.5px solid var(--color-border-tertiary)',
-      background: 'var(--color-bg-primary)', flexShrink: 0, width: '100%',
+      background: '#FAFAFA', flexShrink: 0, width: '100%',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }} onClick={() => navigate('/')}>
-        <img src="/assets/linup-icon.png" alt="LINUP icon" style={{ width: 28, height: 28, objectFit: 'contain' }} />
-        <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-brand)', letterSpacing: '-0.02em', fontFamily: 'var(--font-sans)' }}>
-          LINUP
-        </span>
+      <div
+        onClick={() => navigate('/')}
+        style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', height: 32, overflow: 'hidden' }}
+      >
+        {/* Wordmark PNG — mix-blend-mode:multiply makes black background transparent on white */}
+        <img
+          src="/assets/linup-wordmark.png"
+          alt="LINUP"
+          style={{
+            height: 28,
+            objectFit: 'contain',
+            mixBlendMode: 'multiply',
+            display: 'block',
+          }}
+        />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', cursor: 'pointer', letterSpacing: '0.02em' }}>
+        <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', cursor: 'pointer' }}>
           Settings
         </span>
         <div style={{
