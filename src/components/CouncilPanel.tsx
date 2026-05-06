@@ -30,6 +30,8 @@ interface CouncilPanelProps {
   status: string;
   questions?: Array<{ id: string; text: string }>;
   onQuestionnaireSubmit?: (answers: Record<string, string>) => void;
+  activeTab?: 'progress' | 'review';
+  onTabChange?: (tab: 'progress' | 'review') => void;
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {
@@ -149,8 +151,12 @@ export default function CouncilPanel({
   
   questions = [],
   onQuestionnaireSubmit,
+  activeTab,
+  onTabChange,
 }: CouncilPanelProps) {
-  const [tab, setTab] = useState<'progress' | 'review'>(questions.length > 0 ? 'review' : 'progress');
+  const [tabInternal, setTabInternal] = useState<'progress' | 'review'>(questions.length > 0 ? 'review' : 'progress');
+  const tab = activeTab ?? tabInternal;
+  const setTab = (t: 'progress' | 'review') => { setTabInternal(t); onTabChange?.(t); };
   const [feedback, setFeedback] = useState('');
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const [mockups, setMockups] = useState<MockupSpec[]>([]);

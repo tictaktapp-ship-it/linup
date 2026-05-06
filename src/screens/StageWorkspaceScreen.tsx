@@ -73,6 +73,7 @@ export default function StageWorkspaceScreen() {
   const [input, setInput] = useState('');
   const [chatRunning, setChatRunning] = useState(false);
   const [councilRunning, setCouncilRunning] = useState(false);
+  const [councilTab, setCouncilTab] = useState<'progress' | 'review'>('progress');
   const [council, setCouncil] = useState<CouncilState>(makeEmptyCouncil());
   const [error, setError] = useState<string | null>(null);
   const [apiKey, setApiKey] = useState('');
@@ -261,6 +262,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
     const augmented = [...messages, extraMsg];
     setMessages(augmented);
     setCouncilRunning(true);
+    setCouncilTab('progress');
     try {
       const key = await getKeys();
       if (!key) return;
@@ -271,6 +273,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
       });
       if (result) {
         setCouncil({ ...result, running: false });
+        setCouncilTab('review');
         try {
           await saveCouncilArtifact({
             project_id: pid, user_id: '',
@@ -427,7 +430,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         )}
       </div>
 
-      <CouncilPanel council={council} questions={councilQuestions} onQuestionnaireSubmit={handleQuestionnaireSubmit} onApprove={handleApprove} onRequestChanges={async (fb) => { const k = await getKeys(); if (!k) return; setCouncilRunning(true); const msg = messages.concat([{ role: 'user' as const, content: 'Council feedback: ' + fb }]); try { const r = await callAI(msg, k); setMessages(msg.concat([{ role: 'assistant', content: r }])); setCouncil(makeEmptyCouncil()); } catch(e) { setError(String(e)); } setCouncilRunning(false); }} onReject={handleReject} status={status} />
+      <CouncilPanel council={council} questions={councilQuestions} activeTab={councilTab} onTabChange={setCouncilTab} onQuestionnaireSubmit={handleQuestionnaireSubmit} onApprove={handleApprove} onRequestChanges={async (fb) => { const k = await getKeys(); if (!k) return; setCouncilRunning(true); const msg = messages.concat([{ role: 'user' as const, content: 'Council feedback: ' + fb }]); try { const r = await callAI(msg, k); setMessages(msg.concat([{ role: 'assistant', content: r }])); setCouncil(makeEmptyCouncil()); } catch(e) { setError(String(e)); } setCouncilRunning(false); }} onReject={handleReject} status={status} />
     </div>
   );
 }
