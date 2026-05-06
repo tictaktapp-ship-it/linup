@@ -174,8 +174,50 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
   const handleApprove = async () => {
     try {
       await invoke('approve_stage', { projectId: pid, stageIndex: currentStage });
-      if (currentStage < STAGES.length - 1) {
-        setCurrentStage(s => s + 1); setMessages([]); setStageStatus(null); setCouncil(makeEmptyCouncil());
+
+      // After Stage 0 approval: trigger the Specification Engineering Team
+      if (currentStage === 0) {
+        const key = await getKeys();
+        if (!key) return;
+
+        // Get the product direction from the council results
+        const productDirection = council.agents
+          .map(a => `## ${a.role}\n${a.output}`)
+          .join('\n\n---\n\n');
+
+        setError(null);
+        // Show progress to user
+        setMessages(prev => [...prev, {
+          role: 'assistant' as const,
+          content: '✅ Product direction approved. The 22-member Specification Engineering Team is now building your full technical specification across all 28 sections. This takes 3-5 minutes. You will be notified when it is ready for your review and sign-off.'
+        }]);
+
+        // Run spec council in background
+        invoke('run_spec_council', {
+          projectId: pid,
+          productDirection,
+          apiKeys: { openrouter: key },
+        }).then(() => {
+          setMessages(prev => [...prev, {
+            role: 'assistant' as const,
+            content: '📄 Your Standard Specification Document is ready. The team has populated all 28 sections. Please review and sign off to lock the specification — this becomes the law for all development stages.'
+          }]);
+        }).catch((e: unknown) => {
+          setError('Spec team error: ' + String(e));
+        });
+
+        // Advance to Stage 1
+        setCurrentStage(s => s + 1);
+        setMessages([]);
+        setStageStatus(null);
+        setCouncil(makeEmptyCouncil());
+      } else {
+        if (currentStage < STAGES.length - 1) {
+          setCurrentStage(s => s + 1);
+          setMessages([]);
+          setStageStatus(null);
+          setCouncil(makeEmptyCouncil());
+        }
       }
     } catch (e) { setError(String(e)); }
   };
@@ -203,7 +245,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           return (
             <button key={stage.index} onClick={() => { setCurrentStage(stage.index); setMessages([]); setStageStatus(null); setCouncil(makeEmptyCouncil()); }}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px', border: 'none', background: isActive ? '#1E293B' : 'transparent', cursor: 'pointer', textAlign: 'left', borderLeft: isActive ? '3px solid var(--color-brand)' : '3px solid transparent' }}>
-              <span style={{ fontSize: 14, flexShrink: 0 }}>{stage.icon}</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={isDone ? '#52B788' : isActive ? _STAGE_COLOURS[stage.index] : '#6B7E96'} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d={_STAGE_ICONS[stage.index]} /></svg>
               <span style={{ fontSize: 13, color: isDone ? '#52B788' : isActive ? '#F1F5F9' : '#8B9DB5', fontWeight: isActive ? 600 : 400 }}>{stage.index + 1}. {stage.name}</span>
               {isDone && <span style={{ marginLeft: 'auto', color: '#22C55E', fontSize: 12 }}>&#10003;</span>}
             </button>
@@ -214,7 +256,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <div style={{ padding: '14px 20px', borderBottom: '0.5px solid var(--color-border-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)' }}>{STAGES[currentStage]?.icon} Stage {currentStage + 1}: {STAGES[currentStage]?.name}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)' }}>Stage {currentStage + 1}: {STAGES[currentStage]?.name}</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginTop: 2 }}>{STAGES[currentStage]?.description}</div>
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
