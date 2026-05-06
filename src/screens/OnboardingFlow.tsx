@@ -29,14 +29,14 @@ export default function OnboardingFlow() {
         stack: 'web',
         budgetCap: 10.0,
       });
-      // Save to Supabase after local creation
-      try { const { createProject: sbCreate } = await import('../lib/supabaseService'); await sbCreate(name, description); } catch(e) { console.warn('Supabase sync failed:', e); }
       window.location.hash = '/project/' + projectId + '/stage/0';
-
+    } catch (e) {
       setError('Failed to create project: ' + String(e));
       setCreating(false);
     }
   };
+
+
 
   const card: React.CSSProperties = { display: 'flex', flexDirection: 'column', gap: 20, padding: '48px 40px', maxWidth: 520, margin: '40px auto 0', width: '100%' };
   const label: React.CSSProperties = { fontSize: 13, fontWeight: 500, color: 'var(--color-text-secondary)', marginBottom: 6, display: 'block' };
