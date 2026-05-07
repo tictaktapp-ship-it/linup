@@ -205,7 +205,7 @@ export default function StageWorkspaceScreen() {
 
 
 
-  };
+
 
   useEffect(() => {
     loadStage(currentStage);
