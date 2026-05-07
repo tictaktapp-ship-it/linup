@@ -240,27 +240,15 @@ pub async fn run_council(
     project_id: String,
     stage_index: i64,
     user_brief: String,
+    project_name: Option<String>,
     api_keys: ApiKeys,
 ) -> Result<(), String> {
     // async council execution
     let db = open_db()?;
     let key = &api_keys.groq;
-    let (name, description): (String, String) = db.query_row(
-        "SELECT name, COALESCE(description, '') FROM projects WHERE id = ?1",
-        params![project_id],
-        |row| Ok((row.get(0)?, row.get(1)?)),
-    ).map_err(|e| format!("Project not found: {e}"))?;
-    // Load brand profile and inject into agent brief
-    let brand_ctx = db.query_row(
-        "SELECT COALESCE(brand_primary_colour,'none'), COALESCE(brand_tone,'none'), COALESCE(brand_font_preference,'none'), COALESCE(brand_has_logo,0) FROM projects WHERE id=?1",
-        params![project_id],
-        |row| Ok(format!(
-            "colour={}, tone={}, font={}, has_logo={}",
-            row.get::<_,String>(0)?, row.get::<_,String>(1)?,
-            row.get::<_,String>(2)?,
-            if row.get::<_,i64>(3)? == 1 { "yes" } else { "no" }
-        )),
-    ).unwrap_or_else(|_| "not set".to_string());
+    let name = project_name.unwrap_or_else(|| project_id.clone());
+    let description = String::new();
+    let brand_ctx = String::from("not set");
 
     let brief = format!(
         "App: {}\nDescription: {}\nBrand profile: {}\n\nConversation:\n{}",
