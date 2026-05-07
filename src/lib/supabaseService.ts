@@ -178,3 +178,15 @@ export async function getStoredSession() {
   const { data: { session } } = await supabase.auth.getSession();
   return session;
 }
+export async function getStageRun(projectId: string, stageIndex: number): Promise<{status: string} | null> {
+  const { data, error } = await supabase
+    .from('stage_runs')
+    .select('status')
+    .eq('project_id', projectId)
+    .eq('stage_index', stageIndex)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+  if (error) return null;
+  return data;
+}

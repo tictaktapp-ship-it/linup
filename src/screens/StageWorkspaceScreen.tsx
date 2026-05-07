@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
 import SpecDocumentViewer from '../components/SpecDocumentViewer';
-import { saveCouncilArtifact, getCouncilArtifacts, saveSpecArtifact, getLatestArtifact, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
+import { saveCouncilArtifact, getCouncilArtifacts, saveSpecArtifact, getLatestArtifact, getStageRun, getProject, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState, AgentResult } from '../components/CouncilPanel';
 
@@ -128,10 +128,26 @@ export default function StageWorkspaceScreen() {
 
   const loadStage = async (stage: number) => {
     try {
-      try { const proj = await invoke<{name:string}>('get_project', { projectId: pid }); if (proj?.name) setProjectName(proj.name); } catch {}
-      const s = await invoke<StageStatus>('get_stage_status', { projectId: pid, stageIndex: stage });
-      setStageStatus(s);
-      if (s.status === 'pending' && stage === 0 && messages.length === 0) startChat();
+      try { const proj = await getProject(pid); if (proj?.name) setProjectName(proj.name); } catch {}
+      // Load stage status from Supabase
+      const stageRun = await getStageRun(pid, stage);
+      const synthStatus: StageStatus = { stage_index: stage, status: stageRun?.status ?? 'pending', artifact: null };
+      setStageStatus(synthStatus);
+      if (synthStatus.status === 'pending' && stage === 0 && messages.length === 0) startChat();
+      // Load council result from Supabase
+      const councilArtifact = await getLatestArtifact(pid, stage, 'council_result');
+      if (councilArtifact?.content) {
+        try {
+          const parsed = JSON.parse(councilArtifact.content);
+          if (parsed && parsed.gate_scorecard) setCouncil({ agents: parsed.agents ?? [], gate_verdict: parsed.gate_verdict ?? '', gate_scorecard: parsed.gate_scorecard ?? '', approved: parsed.approved ?? false, running: false });
+          else if (typeof parsed === 'string') setCouncil({ agents: [], gate_verdict: '', gate_scorecard: parsed, approved: false, running: false });
+        } catch { /* parse error */ }
+      }
+      // Load spec doc from Supabase (stage 0 or 1+)
+      try {
+        const specArtifact = await getLatestArtifact(pid, 0, 'standard_specification');
+        if (specArtifact?.content) setSpecDoc(specArtifact.content);
+      } catch { /* no spec yet */ }
       const result = await invoke<{ agents: AgentResult[]; gate_verdict: string; gate_scorecard: string; approved: boolean; } | null>('get_council_result', { projectId: pid, stageIndex: stage });
       if (result) setCouncil({ ...result, running: false });
         // Parse questions from saved scorecard
@@ -151,12 +167,12 @@ export default function StageWorkspaceScreen() {
         try {
           const artifacts = await getCouncilArtifacts(pid, stage);
           const chatArtifact = artifacts?.find((a: any) => a.artifact_type === 'chat_history');
-          // Load spec doc if on stage 1+
-          if (stage >= 1) {
-            try {
-              const specArtifact = await getLatestArtifact(pid, 0, 'standard_specification');
-              if (specArtifact?.content) setSpecDoc(specArtifact.content);
-            } catch { /* no spec yet */ }
+          // Spec doc loaded above
+
+
+
+
+
           }
           if (chatArtifact?.content) {
             const saved = JSON.parse(chatArtifact.content);
