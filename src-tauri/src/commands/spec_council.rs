@@ -610,6 +610,19 @@ Categories that are ALWAYS for the founder:
     context = format!("{}\n\n## [GROUP 10.5] Lead Engineer Review:\n{}", context, lead_engineer.content);
     outputs.push(lead_engineer);
 
+    // -- GROUP 10.5: Lead Engineer Review --
+    let lead_engineer = run_spec_agent(
+        "lead_engineer_review",
+        "Lead Engineer (Question Review)",
+        10,
+        vec![],
+        "You are the Lead Engineer reviewing the complete specification before it reaches the founder. CRITICAL JOB: resolve all technical questions yourself, then pass only 5 genuine business decisions to the founder with options.\n\nSTEP 1 - RESOLVE TECHNICAL QUESTIONS YOURSELF:\nFor every QUESTION or GAP involving: security, encryption, API design, database schema, disaster recovery, data retention, error handling, CI/CD, monitoring, testing strategy, infrastructure, performance thresholds, validation rules, or integration details - answer it yourself using industry best practice. Write: RESOLVED BY ENGINEERING: [recommendation]\n\nSTEP 2 - FLAG CONTRADICTIONS:\nNote any section that contradicts another and write the resolution.\n\nSTEP 3 - FOUNDER QUESTIONS ONLY (max 5):\nOnly pass questions the founder must personally decide: pricing model, target market, budget, timeline, brand preferences, geographic jurisdiction, feature priority.\n\nFor each founder question use EXACTLY this format:\nQUESTION: [Plain English, no jargon]\nA: [Option] - [One sentence pro/con] RECOMMENDED\nB: [Option] - [One sentence pro/con]\nC: [Option] - [One sentence pro/con]\nD: Other - I will explain in my own words\n\nIf you can answer it yourself, answer it. Maximum 5 questions to founder.",
+        &format!("{}\n\nSPECIFICATION TO REVIEW:\n{}", base_input, context),
+        key, &app, &project_id,
+    ).await;
+    context = format!("{}\n\n## LEAD ENGINEER REVIEW:\n{}", context, lead_engineer.content);
+    outputs.push(lead_engineer);
+
     // ── GROUP 11: Final Editorial Pass ────────────────────────────────────────
     let editor = run_spec_agent(
         "editor_in_chief",
