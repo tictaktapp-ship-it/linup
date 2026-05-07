@@ -128,6 +128,7 @@ export default function StageWorkspaceScreen() {
 
   const loadStage = async (stage: number) => {
     try {
+      // Load project name from Supabase
       try { const proj = await getProject(pid); if (proj?.name) setProjectName(proj.name); } catch {}
       // Load stage status from Supabase
       const stageRun = await getStageRun(pid, stage);
@@ -138,47 +139,35 @@ export default function StageWorkspaceScreen() {
       const councilArtifact = await getLatestArtifact(pid, stage, 'council_result');
       if (councilArtifact?.content) {
         try {
-          const parsed = JSON.parse(councilArtifact.content);
-          if (parsed && parsed.gate_scorecard) setCouncil({ agents: parsed.agents ?? [], gate_verdict: parsed.gate_verdict ?? '', gate_scorecard: parsed.gate_scorecard ?? '', approved: parsed.approved ?? false, running: false });
-          else if (typeof parsed === 'string') setCouncil({ agents: [], gate_verdict: '', gate_scorecard: parsed, approved: false, running: false });
+          const scorecard = councilArtifact.content;
+          setCouncil({ agents: [], gate_verdict: '', gate_scorecard: scorecard, approved: false, running: false });
+          // Parse questions from scorecard
+          const qLines2: string[] = [];
+          let inQS = false;
+          scorecard.split('\n').forEach((line: string) => {
+            const t = line.trim();
+            if (/^##.*QUESTION/i.test(t) || t.startsWith('## QUESTIONS')) { inQS = true; return; }
+            if (inQS && t.startsWith('##')) { inQS = false; return; }
+            if (t.startsWith('QUESTION:')) qLines2.push(t.replace(/^QUESTION:\s*/, ''));
+            else if (inQS && /^\d+[\.\)]\s+.{10,}/.test(t)) qLines2.push(t.replace(/^\d+[\.\)]\s+/, ''));
+          });
+          if (qLines2.length > 0) setCouncilQuestions(qLines2.map((l, idx) => ({ id: 'q' + idx, text: l.trim() })));
         } catch { /* parse error */ }
       }
-      // Load spec doc from Supabase (stage 0 or 1+)
+      // Load spec doc from Supabase
       try {
         const specArtifact = await getLatestArtifact(pid, 0, 'standard_specification');
         if (specArtifact?.content) setSpecDoc(specArtifact.content);
       } catch { /* no spec yet */ }
-      const result = await invoke<{ agents: AgentResult[]; gate_verdict: string; gate_scorecard: string; approved: boolean; } | null>('get_council_result', { projectId: pid, stageIndex: stage });
-      if (result) setCouncil({ ...result, running: false });
-        // Parse questions from saved scorecard
-        if (result && result.gate_scorecard && !result.approved) {
-          const qLines2: string[] = [];
-          let inQS = false;
-          result.gate_scorecard.split('\n').forEach((line: string) => {
-            const t = line.trim();
-            if (t.startsWith('## QUESTIONS REQUIRING ANSWERS') || t.startsWith('## Questions Requiring')) { inQS = true; return; }
-            if (inQS && t.startsWith('##')) { inQS = false; return; }
-            if (t.startsWith('QUESTION:')) qLines2.push(t.replace(/^QUESTION:\s*/, ''));
-            else if (inQS && /^\d+[\.\)]\s+.+/.test(t)) qLines2.push(t.replace(/^\d+[\.\)]\s+/, ''));
-          });
-          if (qLines2.length > 0) setCouncilQuestions(qLines2.map((l, idx) => ({ id: 'q' + idx, text: l.trim() })));
+      // Load chat history from Supabase
+      try {
+        const artifacts = await getCouncilArtifacts(pid, stage);
+        const chatArtifact = artifacts?.find((a: any) => a.artifact_type === 'chat_history');
+        if (chatArtifact?.content) {
+          const saved = JSON.parse(chatArtifact.content);
+          if (Array.isArray(saved) && saved.length > 0) setMessages(saved.map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content })));
         }
-        // Load chat history
-        try {
-          const artifacts = await getCouncilArtifacts(pid, stage);
-          const chatArtifact = artifacts?.find((a: any) => a.artifact_type === 'chat_history');
-          // Spec doc loaded above
-
-
-
-
-
-          }
-          if (chatArtifact?.content) {
-            const saved = JSON.parse(chatArtifact.content);
-            if (Array.isArray(saved) && saved.length > 0) setMessages(saved as Message[]);
-          }
-        } catch { /* no history */ }
+      } catch { /* no history */ }
       // Save to Supabase
       try {
         await saveCouncilArtifact({
