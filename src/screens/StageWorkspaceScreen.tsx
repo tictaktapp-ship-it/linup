@@ -229,6 +229,8 @@ export default function StageWorkspaceScreen() {
         setSpecAgents(prev => prev.map(a => a.id === ev.payload.agent_id ? { ...a, done: true } : a));
       });
       const u6 = listen<{project_id:string;stage_index:number;gate_verdict:string;gate_scorecard:string;approved:boolean}>('council-complete', async ev => {
+        console.log('[council-complete] payload:', JSON.stringify(ev.payload).substring(0, 500));
+        console.log('[council-complete] scorecard preview:', ev.payload.gate_scorecard?.substring(0, 300));
         if (ev.payload.project_id !== pid || ev.payload.stage_index !== currentStage) return;
         const synth: CouncilState = { agents: [], gate_verdict: ev.payload.gate_verdict, gate_scorecard: ev.payload.gate_scorecard, approved: ev.payload.approved, running: false };
         setCouncil(prev => ({ ...prev, ...synth }));
