@@ -6,7 +6,7 @@ import CouncilPanel from '../components/CouncilPanel';
 import SpecDocumentViewer from '../components/SpecDocumentViewer';
 import { saveCouncilArtifact, getCouncilArtifacts, saveSpecArtifact, getLatestArtifact, getStageRun, getProject, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
-import type { CouncilState, AgentResult } from '../components/CouncilPanel';
+import type { CouncilState } from '../components/CouncilPanel';
 
 
 const SYSTEM_PROMPT = `You are LINUP, an expert product manager and product strategist. The user has already provided their app name and description. Your job is to deepen context through focused conversation — do NOT ask them to re-explain what they already told you.
@@ -168,43 +168,43 @@ export default function StageWorkspaceScreen() {
           if (Array.isArray(saved) && saved.length > 0) setMessages(saved.map((m: any) => ({ role: m.role as 'user' | 'assistant', content: m.content })));
         }
       } catch { /* no history */ }
-      // Save to Supabase
-      try {
-        await saveCouncilArtifact({
-          project_id: pid,
-          user_id: '',
-          stage_index: currentStage,
-          artifact_type: 'council_result',
-          content: JSON.stringify(result?.agents ?? []),
-        });
-        await saveCouncilArtifact({
-          project_id: pid,
-          user_id: '',
-          stage_index: currentStage,
-          artifact_type: 'product_spec',
-          content: result?.gate_scorecard ?? '',
-        });
-        await upsertStageRun(pid, currentStage, result?.approved ? 'awaiting_approval' : 'gate_failed');
-        const gateText = result?.gate_scorecard ?? '';
-        const qLines: string[] = [];
-        // Parse questions from two formats:
-        // 1. Lines starting with 'QUESTION:'
-        // 2. Numbered list under '## QUESTIONS REQUIRING ANSWERS'
-        let inQSection = false;
-        gateText.split('\n').forEach((line: string) => {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('## QUESTIONS REQUIRING ANSWERS') || trimmed.startsWith('## Questions Requiring')) { inQSection = true; return; }
-          if (inQSection && trimmed.startsWith('##')) { inQSection = false; return; }
-          if (trimmed.startsWith('QUESTION:')) { qLines.push(trimmed.replace(/^QUESTION:\s*/, '')); }
-          else if (inQSection && /^\d+[\.\)]\s+.+/.test(trimmed)) { qLines.push(trimmed.replace(/^\d+[\.\)]\s+/, '')); }
-        });
-        if (qLines.length > 0 && !result?.approved && passNumber < 5) {
-          const qs = qLines.map((l: string, idx: number) => ({ id: 'q' + idx, text: l.replace(/^QUESTION:\s*/, '').trim() }));
-          setCouncilQuestions(qs);
-          
-        }
-      } catch (e) { console.error('Supabase save error:', e); }
     } catch (e) { setError(String(e)); }
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   };
 
   useEffect(() => {
