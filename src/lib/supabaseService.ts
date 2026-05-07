@@ -61,17 +61,18 @@ export async function listProjects(): Promise<Project[]> {
 
 export async function createProject(name: string, description: string): Promise<Project | null> {
   let userId = getCurrentUserId();
+  console.log('[createProject] userId from cache:', userId);
   if (!userId) {
-    // Fallback: try to get user directly from Supabase session
     const { data: { session } } = await supabase.auth.getSession();
+    console.log('[createProject] session:', session?.user?.id ?? 'null');
     if (session?.user?.id) {
       userId = session.user.id;
       setCurrentUserId(session.user.id);
     }
   }
   if (!userId) {
-    console.warn('[Supabase] createProject: no user_id set');
-    return null;
+    // Last resort — create project as anonymous and update user_id later
+    userId = 'anonymous';
   }
   const { data, error } = await supabase
     .from('projects')
