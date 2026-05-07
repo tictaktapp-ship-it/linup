@@ -74,7 +74,7 @@ function VerdictDot({ verdict }: { verdict: SpecSection['verdict'] }) {
   return <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: colors[verdict], flexShrink: 0, marginTop: 1 }} />;
 }
 
-export default function SpecDocumentViewer({ doc, projectId, projectName, onApprove, onReject, onClose }: SpecDocumentViewerProps) {
+export default function SpecDocumentViewer({ doc, projectId: _projectId, projectName, onApprove, onReject, onClose }: SpecDocumentViewerProps) {
   const [sections, setSections] = useState<SpecSection[]>([]);
   const [activeSection, setActiveSection] = useState<string>('');
   const [search, setSearch] = useState('');
@@ -133,16 +133,17 @@ export default function SpecDocumentViewer({ doc, projectId, projectName, onAppr
     URL.revokeObjectURL(url);
   };
 
-  const downloadPDF = async () => {
-    try {
-      const _path = await save({
-        defaultPath: "${projectName.replace(/\s+/g, '-')}-specification-v0.1.0.html",
-        filters: [{ name: 'HTML (print to PDF)', extensions: ['html'] }],
-      });
-      if (!path) return;
-      const html = "<!DOCTYPE html><html><head><meta charset='utf-8'/><title>${projectName} — Specification</title><style>body{font-family:Inter,sans-serif;color:#1A1A18;max-width:900px;margin:0 auto;padding:40px}.cover{background:linear-gradient(135deg,#3D006B,#8C00B4,#C400FF);color:#fff;padding:80px;margin:-40px -40px 40px;page-break-after:always}h1{font-size:32px;margin:0 0 8px}h2{font-size:20px;color:#8C00B4;margin:32px 0 8px;border-bottom:2px solid #8C00B4;padding-bottom:4px}h3{font-size:15px;margin:20px 0 6px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border:1px solid #E0E0DE;padding:8px 10px;text-align:left;font-size:13px}th{background:#F4F4F2;font-weight:600}code{background:#F4F4F2;padding:1px 4px;border-radius:3px;font-size:12px}pre{background:#1A1A18;color:#F4F4F2;padding:14px;border-radius:6px;font-size:12px}hr{border:none;border-top:1px solid #E0E0DE;margin:24px 0}.gap{color:#DC2626;font-weight:700}@media print{body{-webkit-print-color-adjust:exact}}</style></head><body><div class='cover'><div style='font-size:11px;opacity:.6;letter-spacing:.15em;text-transform:uppercase;margin-bottom:32px'>LINUP · AI Co-Founder Platform</div><h1>${projectName}</h1><div style='font-size:16px;opacity:.8;margin-bottom:8px'>Product Specification Document</div><div style='font-size:12px;opacity:.5'>Version 0.1.0 · Draft · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div></div>${doc.replace(/<!--.*?-->/gs,'').replace(/^## (.+)$/gm,'<h2></h2>').replace(/^### (.+)$/gm,'<h3></h3>').replace(/\*\*(.+?)\*\*/g,'<strong></strong>').replace(/\[GAP-(\w+)\]:/g,'<span class=gap>[GAP-]:</span>').replace(/^---+$/gm,'<hr>').replace(/\n\n/g,'</p><p>')}</body></html>";
-      await writeTextFile(path, html);
-    } catch (e) { console.error('PDF export failed:', e); }
+  const downloadPDF = () => {
+    const html = '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>' + projectName + ' — Specification</title><style>body{font-family:Inter,sans-serif;color:#1A1A18;max-width:900px;margin:0 auto;padding:40px}h2{font-size:20px;color:#8C00B4;margin:32px 0 8px;border-bottom:2px solid #8C00B4;padding-bottom:4px}h3{font-size:15px;margin:20px 0 6px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border:1px solid #E0E0DE;padding:8px;text-align:left;font-size:13px}th{background:#F4F4F2;font-weight:600}.gap{color:#DC2626;font-weight:700}hr{border:none;border-top:1px solid #E0E0DE;margin:24px 0}@media print{body{-webkit-print-color-adjust:exact}}</style></head><body>' + doc.replace(/<!--.*?-->/gs, '').replace(/^## (.+)$/gm, '<h2></h2>').replace(/^### (.+)$/gm, '<h3></h3>').replace(/\*\*(.+?)\*\*/g, '<strong></strong>').replace(/^---+$/gm, '<hr>').replace(/\n\n/g, '</p><p>') + '</body></html>';
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = projectName.replace(/\s+/g, '-') + '-specification-v0.1.0.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const handleApprove = async () => {
