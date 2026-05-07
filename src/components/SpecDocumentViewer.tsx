@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeTextFile } from '@tauri-apps/plugin-fs';
 
 interface SpecSection {
   id: string;
@@ -132,49 +134,16 @@ export default function SpecDocumentViewer({ doc, projectId, projectName, onAppr
     URL.revokeObjectURL(url);
   };
 
-  const downloadPDF = () => {
-    const win = window.open('', '_blank');
-    if (!win) return;
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>${projectName} — Specification</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;color:#1A1A18}
-.cover{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px;background:linear-gradient(135deg,#3D006B 0%,#8C00B4 50%,#C400FF 100%);color:#fff;page-break-after:always}
-.cover-eyebrow{font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;opacity:.6;margin-bottom:48px}
-.cover-badge{display:inline-block;padding:4px 12px;border:1px solid rgba(255,255,255,.4);border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.08em;margin-bottom:24px}
-.cover-title{font-size:48px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:16px}
-.cover-sub{font-size:18px;opacity:.8;margin-bottom:40px}
-.cover-meta{font-size:12px;opacity:.55;line-height:2.2}
-.content{padding:60px 80px}
-h1{font-size:26px;font-weight:700;color:#8C00B4;margin:48px 0 16px;border-bottom:2px solid #8C00B4;padding-bottom:8px}
-h2{font-size:18px;font-weight:600;color:#1A1A18;margin:28px 0 10px}
-h3{font-size:13px;font-weight:700;color:#4A4A46;margin:18px 0 6px;text-transform:uppercase;letter-spacing:.06em}
-p{font-size:13px;line-height:1.7;color:#1A1A18;margin-bottom:10px}
-ul{margin:6px 0 14px 18px}li{font-size:13px;line-height:1.7;margin-bottom:3px}
-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:12px}
-th,td{border:1px solid #E0E0DE;padding:7px 10px;text-align:left;vertical-align:top}
-th{background:#F4F4F2;font-weight:600}
-code{font-family:'JetBrains Mono',monospace;font-size:11px;background:#F4F4F2;padding:1px 4px;border-radius:3px}
-pre{background:#1A1A18;color:#F4F4F2;padding:14px;border-radius:6px;font-size:11px;margin:10px 0;white-space:pre-wrap}
-.gap{color:#DC2626;font-weight:700}
-.question{background:#EEF2FF;border-left:3px solid #6366F1;padding:7px 10px;margin:6px 0;font-size:12px}
-hr{border:none;border-top:1px solid #E0E0DE;margin:28px 0}
-@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-</style></head><body>
-<div class="cover">
-  <div class="cover-eyebrow">LINUP · AI Co-Founder Platform</div>
-  <div class="cover-badge">DRAFT — AWAITING APPROVAL</div>
-  <div class="cover-title">${projectName}</div>
-  <div class="cover-sub">Product Specification Document</div>
-  <div class="cover-meta">Version: 0.1.0<br/>Project ID: ${projectId}<br/>Generated: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}<br/>Produced by: LINUP 22-Agent Engineering Team<br/>Status: Draft — Awaiting Founder Approval</div>
-</div>
-<div class="content">
-${doc.replace(/<!--.*?-->/gs, '').replace(/^## (.+)$/gm, '<h1>$1</h1>').replace(/^### (.+)$/gm, '<h2>$1</h2>').replace(/^#### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\[GAP-(\w+)\]:/g, '<span class="gap">[GAP-$1]:</span>').replace(/^QUESTION: (.+)$/gm, '<div class="question"><strong>QUESTION:</strong> $1</div>').replace(/^---+$/gm, '<hr/>').replace(/\n\n/g, '</p><p>')}
-</div>
-<script>window.onload=()=>window.print();</script>
-</body></html>`;
-    win.document.write(html);
-    win.document.close();
+  const downloadPDF = async () => {
+    try {
+      const path = await save({
+        defaultPath: "${projectName.replace(/\s+/g, '-')}-specification-v0.1.0.html",
+        filters: [{ name: 'HTML (print to PDF)', extensions: ['html'] }],
+      });
+      if (!path) return;
+      const html = "<!DOCTYPE html><html><head><meta charset='utf-8'/><title>${projectName} — Specification</title><style>body{font-family:Inter,sans-serif;color:#1A1A18;max-width:900px;margin:0 auto;padding:40px}.cover{background:linear-gradient(135deg,#3D006B,#8C00B4,#C400FF);color:#fff;padding:80px;margin:-40px -40px 40px;page-break-after:always}h1{font-size:32px;margin:0 0 8px}h2{font-size:20px;color:#8C00B4;margin:32px 0 8px;border-bottom:2px solid #8C00B4;padding-bottom:4px}h3{font-size:15px;margin:20px 0 6px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border:1px solid #E0E0DE;padding:8px 10px;text-align:left;font-size:13px}th{background:#F4F4F2;font-weight:600}code{background:#F4F4F2;padding:1px 4px;border-radius:3px;font-size:12px}pre{background:#1A1A18;color:#F4F4F2;padding:14px;border-radius:6px;font-size:12px}hr{border:none;border-top:1px solid #E0E0DE;margin:24px 0}.gap{color:#DC2626;font-weight:700}@media print{body{-webkit-print-color-adjust:exact}}</style></head><body><div class='cover'><div style='font-size:11px;opacity:.6;letter-spacing:.15em;text-transform:uppercase;margin-bottom:32px'>LINUP · AI Co-Founder Platform</div><h1>${projectName}</h1><div style='font-size:16px;opacity:.8;margin-bottom:8px'>Product Specification Document</div><div style='font-size:12px;opacity:.5'>Version 0.1.0 · Draft · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div></div>${doc.replace(/<!--.*?-->/gs,'').replace(/^## (.+)$/gm,'<h2></h2>').replace(/^### (.+)$/gm,'<h3></h3>').replace(/\*\*(.+?)\*\*/g,'<strong></strong>').replace(/\[GAP-(\w+)\]:/g,'<span class=gap>[GAP-]:</span>').replace(/^---+$/gm,'<hr>').replace(/\n\n/g,'</p><p>')}</body></html>";
+      await writeTextFile(path, html);
+    } catch (e) { console.error('PDF export failed:', e); }
   };
 
   const handleApprove = async () => {
