@@ -359,8 +359,8 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
   const handleApprove = async () => {
     try {
       await invoke('approve_stage', { projectId: pid, stageIndex: currentStage });
-      await updateProjectStage(pid, currentStage + 1);
-      await upsertStageRun(pid, currentStage, 'approved');
+      // Stage advancement handled by handleSpecApprove after spec is approved
+      await upsertStageRun(pid, currentStage, 'in_progress');
 
       // After Stage 0 approval: trigger the Specification Engineering Team
       if (currentStage === 0) {
@@ -400,11 +400,11 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           setError('Spec team error: ' + String(e));
         });
 
-        // Advance to Stage 1
-        setCurrentStage(s => s + 1);
-        setMessages([]);
-        setStageStatus(null);
-        setCouncil(makeEmptyCouncil());
+        // Stage advancement happens in handleSpecApprove after user approves the spec
+        // Do NOT advance stage here — user must review and approve the spec first
+
+
+
       } else {
         if (currentStage < STAGES.length - 1) {
           setCurrentStage(s => s + 1);
