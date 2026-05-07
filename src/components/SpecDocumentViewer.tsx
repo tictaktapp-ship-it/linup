@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeTextFile } from '@tauri-apps/plugin-fs';
+
 
 interface SpecSection {
   id: string;
@@ -14,7 +13,7 @@ interface SpecSection {
 
 interface SpecDocumentViewerProps {
   doc: string;
-  projectId: string;
+  projectId?: string;
   projectName: string;
   onApprove: (outputFolder: string) => Promise<void>;
   onReject: (feedback: string) => Promise<void>;
@@ -136,7 +135,7 @@ export default function SpecDocumentViewer({ doc, projectId, projectName, onAppr
 
   const downloadPDF = async () => {
     try {
-      const path = await save({
+      const _path = await save({
         defaultPath: "${projectName.replace(/\s+/g, '-')}-specification-v0.1.0.html",
         filters: [{ name: 'HTML (print to PDF)', extensions: ['html'] }],
       });
