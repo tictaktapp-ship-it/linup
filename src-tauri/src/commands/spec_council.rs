@@ -568,13 +568,55 @@ pub async fn run_spec_council(
         outputs.push(regulated);
     }
 
+    // ── GROUP 10.5: Lead Engineer Review ─────────────────────────────────────
+    let lead_engineer = run_spec_agent(
+        "lead_engineer_review",
+        "Lead Engineer (Question Review)",
+        10,
+        vec![],
+        "You are the Lead Engineer reviewing a product specification before it is presented to a non-technical founder for approval. Your job is CRITICAL: review every QUESTION in the specification and determine whether a non-technical founder can reasonably answer it.
+
+RULES:
+1. For every QUESTION in the spec, ask yourself: 'Would a typical non-technical business founder know the answer to this?'
+2. If NO (technical questions like: API naming conventions, disaster recovery procedures, encryption algorithms, database indexing strategy, validation rules, security implementation details, CI/CD pipeline specifics, monitoring thresholds) — YOU must answer it based on industry best practice. Write: 'RESOLVED BY ENGINEERING: [your recommendation]' and remove the QUESTION.
+3. If YES (business questions like: budget, timeline, target market, business model, brand preferences, regulatory jurisdiction, key features, pricing strategy) — KEEP the question but rewrite it in plain English that any founder can understand. Remove all technical jargon.
+4. Output the COMPLETE revised specification with all technical questions resolved and only founder-level questions remaining.
+5. At the end produce a section: ## FOUNDER QUESTIONS (maximum 10, plain English only)
+
+Categories that are ALWAYS technical (resolve yourself):
+- Security implementation details
+- API design specifics  
+- Database schema decisions
+- Infrastructure and deployment choices
+- Error handling patterns
+- Performance thresholds
+- Code architecture decisions
+- Testing strategies
+- Data validation rules
+- Integration technical details
+
+Categories that are ALWAYS for the founder:
+- What is the budget?
+- What markets/jurisdictions do you operate in?
+- What is the pricing model?
+- Who are the target users?
+- What is the timeline?
+- What are the must-have vs nice-to-have features?
+- What brand guidelines exist?
+- What regulatory requirements apply to your business?",
+        &format!("{}\n\nCOMPLETE SPECIFICATION TO REVIEW:\n{}", base_input, context),
+        key, &app, &project_id,
+    ).await;
+    context = format!("{}\n\n## [GROUP 10.5] Lead Engineer Review:\n{}", context, lead_engineer.content);
+    outputs.push(lead_engineer);
+
     // ── GROUP 11: Final Editorial Pass ────────────────────────────────────────
     let editor = run_spec_agent(
         "editor_in_chief",
         "Editor-in-Chief (Final Pass)",
         11,
         vec![1, 28],
-        "You are the Editor-in-Chief doing the final pass on the complete specification. You must:\n1. Check every section for compliance with the structured output format — list any non-compliant sections.\n2. Resolve contradictions between sections — document each resolution.\n3. Ensure every requirement is testable and verifiable — flag any that are not.\n4. Ensure every GAP has an ID and description.\n5. Ensure no BLOCKED gaps remain without an explicit owner.\n6. Check terminology consistency across all sections — flag inconsistencies.\n7. Produce a final spec completeness report in this exact format:\n\n## SPECIFICATION COMPLETENESS REPORT\n\nSections reviewed: [N]\nSections COMPLETE: [N]\nSections NEEDS_INPUT: [N]\nSections BLOCKED: [N]\nTotal gaps: [N]\nTotal questions for user: [N]\nDomain sections activated: [list or NONE]\nOverall verdict: READY_FOR_REVIEW | NEEDS_INPUT | BLOCKED\n\n## CONSOLIDATED QUESTIONS FOR USER\n[List every QUESTION from all sections, numbered]\n\n## CRITICAL ISSUES\n[List any BLOCKED items or critical contradictions]\n\n## EDITORIAL NOTES\n[List any format compliance issues or terminology inconsistencies found]",
+        "You are the Editor-in-Chief doing the final pass on the complete specification. CRITICAL RULE: You must ensure NO technical question is ever presented to the founder. If you find any remaining technical questions (security implementation, API design, database schema, infrastructure, error handling, performance thresholds, testing strategy, validation rules, integration details) — resolve them yourself using industry best practice before the spec reaches the user.\n\nYou must:\n1. Check every section for structured output format compliance.\n2. Resolve contradictions between sections.\n3. Ensure every requirement is testable and verifiable.\n4. Ensure every GAP has an ID and description.\n5. Resolve any remaining technical questions with engineering best practice.\n6. Keep only genuine founder-level questions (budget, market, jurisdiction, pricing, target users, timeline, brand preferences, regulatory scope).\n7. Rewrite any kept questions in plain English — no jargon.\n\nProduce this exact output:\n\n## SPECIFICATION COMPLETENESS REPORT\nSections reviewed: [N]\nSections COMPLETE: [N]\nSections NEEDS_INPUT: [N]\nSections BLOCKED: [N]\nTotal gaps: [N]\nOverall verdict: READY_FOR_REVIEW | NEEDS_INPUT | BLOCKED\n\n## FOUNDER QUESTIONS\n(Maximum 10, plain English only, no technical terms — these are the ONLY questions the founder will see)\n1. [Question]\n\n## CRITICAL ISSUES\n[Any BLOCKED items]\n\n## EDITORIAL NOTES\n[Format issues or inconsistencies found]",
         &format!("{}\n\nCOMPLETE SPEC CONTEXT FOR REVIEW:\n{}", base_input, context), key, &app, &project_id,
     ).await;
     outputs.push(editor.clone());
