@@ -100,12 +100,19 @@ export default function SpecBuildingPanel({ agents }: SpecBuildingPanelProps) {
           animation: 'linup-glow 3s ease-in-out infinite',
         }}>
 
+          {/* Explanation banner */}
+          <div style={{ padding: '12px 24px', background: '#8C00B411', borderBottom: '0.5px solid #8C00B422' }}>
+            <div style={{ fontSize: 11, color: '#C084FC', lineHeight: 1.7 }}>
+              Your Lead Engineer is coordinating the team — only calling in the specialists your project actually needs, in the most efficient order. Each engineer builds on the work of the one before, so the document grows richer as the team progresses.
+            </div>
+          </div>
+
           {/* Header */}
           <div style={{ padding: '20px 24px 14px', borderBottom: '0.5px solid #8C00B433', flexShrink: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: '#F1F5F9', letterSpacing: '-0.02em' }}>Engineering Department</div>
-                <div style={{ fontSize: 11, color: '#A855F7', marginTop: 2 }}>Creating Full App Specification · {done} of {agents.length || ALL_ROLES.length} agents active</div>
+                <div style={{ fontSize: 11, color: '#A855F7', marginTop: 2 }}>Creating Full App Specification · {done} of {agents.length} engineers have contributed so far</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 26, fontWeight: 700, color: '#C084FC', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{pct}%</div>
@@ -165,7 +172,7 @@ export default function SpecBuildingPanel({ agents }: SpecBuildingPanelProps) {
                       <div style={{ fontSize: 11, fontWeight: 600, color: isDone ? '#4ADE80' : isActive ? '#C084FC' : '#4A5568', marginBottom: 2 }}>
                         {agent.role}
                       </div>
-                      <div style={{ fontSize: 10, color: isDone ? '#86EFAC99' : isActive ? '#A855F799' : '#4A556888', lineHeight: 1.4 }}>
+                      <div style={{ fontSize: 10, color: isDone ? '#86EFAC' : isActive ? '#E9D5FF' : '#4A5568', lineHeight: 1.4 }}>
                         {isDone ? 'Section complete' : isActive ? getDescription(agent.role) : 'Waiting for brief...'}
                       </div>
                     </div>

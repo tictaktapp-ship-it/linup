@@ -243,7 +243,7 @@ pub async fn run_spec_council(
         "Specification Program Lead",
         0,
         vec![0, 1, 28],
-        "You are the Specification Program Lead. Your job is to:\n1. Classify the product into domain types (Section 0.1) — mark every row Yes/No, never TBD. Activate all relevant domain sections.\n2. Populate Section 1 fully: document metadata, version history starting at 0.1.0, change control process, glossary of ALL domain-specific terms from the brief (ask for definitions of any unknown acronyms), assumptions, dependencies, constraints, and RAID log with at least 3 risk entries.\n3. Set up Section 28 skeleton: milestone structure and acceptance criteria headings only — downstream agents will populate details.\n4. Produce a spec plan noting which sections are highest priority given the domain type.",
+        "You are the Specification Program Lead for a software product specification. Read the product brief carefully and classify the product into domains with extreme caution — only activate a domain if there is EXPLICIT and CLEAR evidence in the brief.\n\nDOMAIN CLASSIFICATION RULES (be very conservative):\n- Gaming: ONLY if the product IS a game. A gamification feature does NOT make it a game.\n- AI/ML: ONLY if AI/ML is a core primary feature, not just a chatbot or recommendation.\n- IoT: ONLY if the product controls physical hardware devices.\n- Media: ONLY if the product is primarily a media streaming or content platform.\n- Marketplace: ONLY if the product connects buyers and sellers as its primary purpose.\n- Regulated (Finance/Health/Legal): ONLY if the product handles financial transactions, medical records, or legal services directly.\n\nFor a typical SaaS, productivity, or consumer app: Gaming=No, AI=No, IoT=No, Media=No, Marketplace=No. Only activate Regulated if payments or financial data are core.\n\nYour output:\n1. Domain classification table — every domain Yes or No, with a ONE SENTENCE justification\n2. Spec plan listing which engineers are needed and why\n3. Section 1 (Document Metadata) populated\n4. Section 28 skeleton\n\nIMPORTANT: When in doubt, mark a domain as No. Activating unnecessary domain specialists causes confusion and irrelevant questions for the founder.",
         &base_input, key, &app, &project_id,
     ).await;
     context = format!("{}\n\n## [GROUP 0] Specification Program Lead:\n{}", context, spec_lead.content);
@@ -574,36 +574,36 @@ pub async fn run_spec_council(
         "Lead Engineer (Question Review)",
         10,
         vec![],
-        "You are the Lead Engineer reviewing a product specification before it is presented to a non-technical founder for approval. Your job is CRITICAL: review every QUESTION in the specification and determine whether a non-technical founder can reasonably answer it.
+        "You are the Lead Engineer. You have received the complete assembled specification. Your ONLY job is to ensure the founder receives a clean, resolved specification with MAXIMUM 5 simple business questions.\n\nSTEP 1 - RESOLVE ALL TECHNICAL QUESTIONS (do not pass ANY of these to founder):\nFor EVERY question or gap in the spec involving these topics, answer it yourself using industry best practice and write RESOLVED: [your answer]:\n- Security, encryption, authentication implementation\n- API design, naming, versioning, rate limiting\n- Database schema, indexing, migrations\n- Infrastructure, hosting, DevOps, CI/CD\n- Error handling, logging, monitoring\n- Testing strategy, coverage targets\n- Performance targets, caching\n- Data retention, backup, disaster recovery\n- Accessibility implementation details\n- Analytics implementation details\n- Any other engineering decision\n\nSTEP 2 - RESOLVE DOMAIN MISTAKES:\nIf the spec includes sections for Gaming, IoT, Media, AI/ML, or Marketplace that are NOT explicitly described in the product brief, write: DOMAIN ERROR: [section] has been removed as not applicable to this product.\n\nSTEP 3 - IDENTIFY GENUINE FOUNDER DECISIONS (maximum 5):\nOnly keep questions about things the founder must personally decide:\n- Which payment provider (if payments are needed)\n- Target geographic market / jurisdictions\n- Budget range for development\n- Launch timeline\n- Which features are MVP vs future\nIf none of these apply, present 0 questions.\n\nSTEP 4 - FORMAT EACH FOUNDER QUESTION WITH OPTIONS:\nQUESTION: [Plain English, no jargon, max 20 words]\nA: [Specific option] - [One sentence benefit] RECOMMENDED\nB: [Specific option] - [One sentence benefit]\nC: [Specific option] - [One sentence benefit]\nD: Other - I will explain in my own words\n\nHARD RULES:\n- Maximum 5 questions. If you have more, pick only the 5 most important.\n- Zero tolerance for technical questions reaching the founder.\n- If a domain section (Gaming, IoT, etc) was incorrectly activated, note it and exclude those questions entirely.",
 
-RULES:
-1. For every QUESTION in the spec, ask yourself: 'Would a typical non-technical business founder know the answer to this?'
-2. If NO (technical questions like: API naming conventions, disaster recovery procedures, encryption algorithms, database indexing strategy, validation rules, security implementation details, CI/CD pipeline specifics, monitoring thresholds) — YOU must answer it based on industry best practice. Write: 'RESOLVED BY ENGINEERING: [your recommendation]' and remove the QUESTION.
-3. If YES (business questions like: budget, timeline, target market, business model, brand preferences, regulatory jurisdiction, key features, pricing strategy) — KEEP the question but rewrite it in plain English that any founder can understand. Remove all technical jargon.
-4. Output the COMPLETE revised specification with all technical questions resolved and only founder-level questions remaining.
-5. At the end produce a section: ## FOUNDER QUESTIONS (maximum 10, plain English only)
 
-Categories that are ALWAYS technical (resolve yourself):
-- Security implementation details
-- API design specifics  
-- Database schema decisions
-- Infrastructure and deployment choices
-- Error handling patterns
-- Performance thresholds
-- Code architecture decisions
-- Testing strategies
-- Data validation rules
-- Integration technical details
 
-Categories that are ALWAYS for the founder:
-- What is the budget?
-- What markets/jurisdictions do you operate in?
-- What is the pricing model?
-- Who are the target users?
-- What is the timeline?
-- What are the must-have vs nice-to-have features?
-- What brand guidelines exist?
-- What regulatory requirements apply to your business?",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         &format!("{}\n\nCOMPLETE SPECIFICATION TO REVIEW:\n{}", base_input, context),
         key, &app, &project_id,
     ).await;
