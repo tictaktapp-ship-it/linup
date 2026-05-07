@@ -190,3 +190,14 @@ export async function getStageRun(projectId: string, stageIndex: number): Promis
   if (error) return null;
   return data;
 }
+export async function getLatestSpecArtifact(projectId: string): Promise<{content: string} | null> {
+  const { data, error } = await supabase
+    .from('spec_artifacts')
+    .select('content')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+  if (error) return null;
+  return data;
+}

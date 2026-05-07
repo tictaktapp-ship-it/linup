@@ -5,7 +5,7 @@ import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
 import SpecDocumentViewer from '../components/SpecDocumentViewer';
 import SpecBuildingPanel from '../components/SpecBuildingPanel';
-import { saveCouncilArtifact, getCouncilArtifacts, saveSpecArtifact, getLatestArtifact, getStageRun, getProject, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
+import { saveCouncilArtifact, getCouncilArtifacts, saveSpecArtifact, getLatestArtifact, getLatestSpecArtifact, getStageRun, getProject, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState } from '../components/CouncilPanel';
 
@@ -155,10 +155,10 @@ export default function StageWorkspaceScreen() {
           if (qLines2.length > 0) setCouncilQuestions(qLines2.map((l, idx) => ({ id: 'q' + idx, text: l.trim() })));
         } catch { /* parse error */ }
       }
-      // Load spec doc from Supabase
+      // Load spec doc from Supabase spec_artifacts table
       try {
-        const specArtifact = await getLatestArtifact(pid, 0, 'standard_specification');
-        if (specArtifact?.content) setSpecDoc(specArtifact.content);
+        const specArtifact = await getLatestSpecArtifact(pid);
+        if (specArtifact?.content) { setSpecDoc(specArtifact.content); }
       } catch { /* no spec yet */ }
       // Load chat history from Supabase
       try {
