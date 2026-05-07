@@ -255,6 +255,7 @@ export default function StageWorkspaceScreen() {
           setCouncilTab('review');
         }
       });
+      return () => { u1.then(f => f()); u2.then(f => f()); u3.then(f => f()); u4.then(f => f()); u5.then(f => f()); u6.then(f => f()); };
   }, [currentStage, pid]);
 
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [messages, chatRunning]);
