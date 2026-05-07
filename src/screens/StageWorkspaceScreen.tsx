@@ -1,3 +1,4 @@
+// StageWorkspaceScreen v2 — Supabase session restore
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
