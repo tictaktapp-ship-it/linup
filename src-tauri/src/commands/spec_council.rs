@@ -93,7 +93,7 @@ async fn call_spec_agent(
         .unwrap_or_default();
     let body = serde_json::json!({
         "model": MODEL, "provider": {"ignore": ["Groq"]},
-        "max_tokens": 2048,
+        "max_tokens": 4096,
         "messages": [
             { "role": "system", "content": system },
             { "role": "user", "content": user_msg }
