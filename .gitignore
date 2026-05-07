@@ -18,3 +18,4 @@ linup-updater.key.pub
 LINUP Env Vars.txt
 *.env.local*
 linup.db
+node_modules/.tmp/
