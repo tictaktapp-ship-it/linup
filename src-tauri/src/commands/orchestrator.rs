@@ -5,8 +5,8 @@ use tauri::Emitter;
 
 const DB_PATH: &str = "E:\\linup-io\\linup.db";
 const GROQ_BASE_URL: &str = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL_FAST: &str = "openrouter/auto";
-const MODEL_CAPABLE: &str = "openrouter/auto";
+const MODEL_FAST: &str = "meta-llama/llama-3.1-8b-instruct";
+const MODEL_CAPABLE: &str = "meta-llama/llama-3.3-70b-instruct";
 
 fn open_db() -> Result<Connection, String> {
     Connection::open(DB_PATH).map_err(|e| format!("DB error: {e}"))
@@ -123,7 +123,7 @@ async fn call_groq(api_key: &str, model: &str, system: &str, user_message: &str)
         .build()
         .unwrap_or_default();
     let body = serde_json::json!({
-        "model": model, "provider": {"ignore": ["Groq"]},
+        "model": model, "provider": {"order": ["Together", "DeepInfra", "Fireworks"], "allow_fallbacks": true},
         "max_tokens": 4096,
         "messages": [
             { "role": "system", "content": system },
