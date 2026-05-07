@@ -328,7 +328,7 @@ ${doc.replace(/<!--.*?-->/gs, '').replace(/^## (.+)$/gm, '<h1>$1</h1>').replace(
             <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
               <button style={btn('transparent', '#8A8A82')} onClick={() => setShowAnswerPanel(false)}>Cancel</button>
               <button style={btn('#8C00B4', '#fff')} onClick={async () => {
-                const answersText = allQuestions.map((q: {id:string;text:string;section:string}) => Q: \nA: ).join('\n\n');
+                const answersText = allQuestions.map((q: {id:string;text:string;section:string}) => 'Q: ' + q.text + '\nA: ' + (questionAnswers[q.id] ?? 'No answer provided')).join('\n\n');
                 setShowAnswerPanel(false);
                 setRejecting(true);
                 await onReject('Please revise the specification addressing these answers:\n\n' + answersText);
