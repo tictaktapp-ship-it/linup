@@ -147,23 +147,13 @@ pub async fn run_stage(
 }
 
 #[tauri::command]
-pub fn approve_stage(project_id: String, stage_index: i64) -> Result<(), String> {
-    let db = open_db()?;
-    let updated_at = chrono::Utc::now().to_rfc3339();
-    db.execute(
-        "UPDATE stage_runs SET status = 'approved', updated_at = ?1 WHERE project_id = ?2 AND stage_index = ?3",
-        params![updated_at, project_id, stage_index],
-    ).map_err(|e| e.to_string())?;
+pub fn approve_stage(_project_id: String, _stage_index: i64) -> Result<(), String> {
+    // Stage approval handled by Supabase from JS
     Ok(())
 }
 
 #[tauri::command]
-pub fn reject_stage(project_id: String, stage_index: i64) -> Result<(), String> {
-    let db = open_db()?;
-    let updated_at = chrono::Utc::now().to_rfc3339();
-    db.execute(
-        "UPDATE stage_runs SET status = 'rejected', updated_at = ?1 WHERE project_id = ?2 AND stage_index = ?3",
-        params![updated_at, project_id, stage_index],
-    ).map_err(|e| e.to_string())?;
+pub fn reject_stage(_project_id: String, _stage_index: i64) -> Result<(), String> {
+    // Stage rejection handled by Supabase from JS
     Ok(())
 }

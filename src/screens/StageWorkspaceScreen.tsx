@@ -242,18 +242,18 @@ export default function StageWorkspaceScreen() {
         let inQSection2 = false;
         gateText.split('\n').forEach((line: string) => {
           const trimmed = line.trim();
-          if (trimmed.startsWith('## QUESTIONS REQUIRING ANSWERS') || trimmed.startsWith('## Questions Requiring')) { inQSection2 = true; return; }
+          if (/^##.*QUESTION/i.test(trimmed) || trimmed.startsWith('## QUESTIONS')) { inQSection2 = true; return; }
           if (inQSection2 && trimmed.startsWith('##')) { inQSection2 = false; return; }
           if (trimmed.startsWith('QUESTION:')) { qLines.push(trimmed.replace(/^QUESTION:\s*/, '')); }
-          else if (inQSection2 && /^\d+[\.\)]\s+.+/.test(trimmed)) { qLines.push(trimmed.replace(/^\d+[\.\)]\s+/, '')); }
+          else if (inQSection2 && /^\d+[\.\)]\s+.{10,}/.test(trimmed)) { qLines.push(trimmed.replace(/^\d+[\.\)]\s+/, '')); }
         });
         if (qLines.length > 0 && !ev.payload.approved) {
           setCouncilQuestions(qLines.map((l, idx) => ({ id: 'q' + idx, text: l.trim() })));
+          setCouncilTab('review');
         } else if (ev.payload.approved) {
           setCouncilQuestions([]);
+          setCouncilTab('review');
         }
-      });
-      return () => { u1.then(f => f()); u2.then(f => f()); u3.then(f => f()); u4.then(f => f()); u5.then(f => f()); u6.then(f => f()); };
   }, [currentStage, pid]);
 
   useEffect(() => { if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight; }, [messages, chatRunning]);
