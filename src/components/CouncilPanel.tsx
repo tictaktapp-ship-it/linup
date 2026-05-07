@@ -221,7 +221,7 @@ export default function CouncilPanel({
     <div style={{ width: panelW, borderLeft: '0.5px solid var(--color-border-tertiary)', display: 'flex', flexDirection: 'column', flexShrink: 0, background: '#FAFAFA', height: '100%' }}>
       {/* Header */}
       <div style={{ padding: '14px 16px 0', flexShrink: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#1A1A18', marginBottom: 2 }}>AI Council</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#1A1A18', marginBottom: 2 }}>The Council</div>
         {allDone && (
           <div style={{ fontSize: 11, color: hasIssues ? 'var(--color-warning)' : 'var(--color-success)', fontWeight: 600 }}>
             {hasIssues ? '⚠ Some issues need attention. Switch to Review table to see details.' : '✓ All checks passed'}

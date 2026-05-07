@@ -21,7 +21,7 @@ Ask targeted follow-up questions across 2-3 exchanges max. Cover only what is st
 STRICT RULES:
 - Do NOT ask about branding, colours, fonts, or logo. The AI council's Market Researcher handles competitive analysis and the Design Council handles brand — the user does not need to know this yet.
 - Never ask generic questions already answered in the brief.
-- Once you have enough context (2-3 exchanges), tell the user you have what you need and ask them to click Deploy AI Council to begin.`;
+- Once you have enough context (2-3 exchanges), tell the user you have what you need and ask them to click Deploy The Council to begin.`;
 
 
 
@@ -382,7 +382,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         // Show progress to user
         setMessages(prev => [...prev, {
           role: 'assistant' as const,
-          content: '✅ Product direction approved. The 22-member Specification Engineering Team is now building your full technical specification across all 28 sections. This takes 3-5 minutes. You will be notified when it is ready for your review and sign-off.'
+          content: '✅ Product direction approved. The Engineering Department is now building your full technical specification across all 28 sections. This takes 3-5 minutes. You will be notified when it is ready for your review and sign-off.'
         }]);
 
         // Run spec council in background
@@ -492,7 +492,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
             {(chatRunning || councilRunning) && <span style={spin} />}
             {readyToRunCouncil && (
               <button onClick={runCouncil} style={{ padding: '8px 16px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                Deploy AI Council
+                Deploy The Council
               </button>
             )}
           </div>
@@ -545,7 +545,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           {readyToRunCouncil && (
             <div style={{ textAlign: 'center', padding: '24px 0', borderTop: '1px dashed var(--color-border-tertiary)', marginTop: 8 }}>
               <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 16, lineHeight: 1.6 }}>Ready to deploy the AI council.<br /><strong>9 specialist agents</strong> will review your brief simultaneously.</div>
-              <button onClick={runCouncil} style={{ padding: '12px 28px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Deploy AI Council</button>
+              <button onClick={runCouncil} style={{ padding: '12px 28px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Deploy The Council</button>
               <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginTop: 8 }}>Clarifier · Devil's Advocate · Spec Writer · Security · Innovator · Business Analyst · Quality Gate</div>
             </div>
           )}
