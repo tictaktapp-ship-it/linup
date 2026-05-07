@@ -123,8 +123,8 @@ async fn call_groq(api_key: &str, model: &str, system: &str, user_message: &str)
         .build()
         .unwrap_or_default();
     let body = serde_json::json!({
-        "model": model,
-        "max_tokens": 4096,
+        "model": model, "provider": {"ignore": ["Groq"]},
+        "max_tokens": 2048,
         "messages": [
             { "role": "system", "content": system },
             { "role": "user", "content": user_message }
