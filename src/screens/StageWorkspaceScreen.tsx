@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import CouncilPanel from '../components/CouncilPanel';
 import SpecDocumentViewer from '../components/SpecDocumentViewer';
+import SpecBuildingPanel from '../components/SpecBuildingPanel';
 import { saveCouncilArtifact, getCouncilArtifacts, saveSpecArtifact, getLatestArtifact, getStageRun, getProject, upsertStageRun, updateProjectStage } from '../lib/supabaseService';
 import { GROQ_API_KEY, OPENROUTER_KEY, GROQ_BASE_URL, MODELS } from '../lib/config';
 import type { CouncilState } from '../components/CouncilPanel';
@@ -516,18 +517,18 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         <div ref={chatRef} style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
           {messages.length === 0 && !chatRunning && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80%', gap: 12 }}><div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--color-brand-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>✦</div><div style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-primary)' }}>Starting {STAGES[currentStage]?.name}...</div></div>}
             {/* Spec building progress - Stage 1+ */}
-            {currentStage === 0 && specBuilding && (
-              <div style={{ padding: '16px', background: '#F0F4FF', borderRadius: 10, marginBottom: 16, border: '1px solid #C7D2FE' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#4338CA', marginBottom: 10 }}>⚙ 22-Member Specification Team is building your document...</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {specAgents.map(a => (
-                    <div key={a.id} style={{ fontSize: 11, padding: '3px 8px', borderRadius: 20, background: a.done ? '#DCFCE7' : '#E0E7FF', color: a.done ? '#166534' : '#3730A3', fontWeight: 500 }}>
-                      {a.done ? '✓' : '◉'} {a.role}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {specBuilding && (
+              <SpecBuildingPanel agents={specAgents} />
             )}
+
+
+
+
+
+
+
+
+
             {/* Spec document viewer - Stage 1+ */}
             {currentStage === 0 && specDoc && !specBuilding && (
               <div style={{ marginBottom: 20 }}>
