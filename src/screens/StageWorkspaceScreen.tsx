@@ -62,43 +62,43 @@ function makeEmptyCouncil(): CouncilState {
   return { agents: [], gate_verdict: '', gate_scorecard: '', approved: false, running: false };
 }
 
-function SpecViewer({ doc, isApproved }: { doc: string; isApproved?: boolean }) {
-  const [expanded, setExpanded] = useState(false);
-  const [search, setSearch] = useState('');
-  const sections = doc.split(/\n(?=##\s)/).filter(Boolean);
-  const filtered = search.trim() ? sections.filter(s => s.toLowerCase().includes(search.toLowerCase())) : sections;
-  return (
-    <div style={{ border: '1.5px solid var(--color-brand)', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
-      <button onClick={() => setExpanded(e => !e)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: 'none', background: 'linear-gradient(135deg, #F5F0FF 0%, #EEF2FF 100%)', cursor: 'pointer', textAlign: 'left' }}>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-brand)' }}>📋 Standard Specification Document</div>
-          <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>{sections.length} sections · Version 0.1.0 · <span style={{ color: isApproved ? '#22C55E' : '#F59E0B', fontWeight: 600 }}>{isApproved ? '✓ Approved' : 'Draft'}</span> — click to {expanded ? 'collapse' : 'read'}</div>
-        </div>
-        <span style={{ fontSize: 12, color: 'var(--color-brand)', fontWeight: 700 }}>{expanded ? 'Collapse ▲' : 'Read ▼'}</span>
-      </button>
-      {expanded && (
-        <div>
-          <div style={{ padding: '10px 16px', borderBottom: '0.5px solid #E5E7EB', background: '#FAFAFA' }}>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder='Search sections...' style={{ width: '100%', padding: '6px 10px', border: '1px solid #E5E7EB', borderRadius: 6, fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
-          </div>
-          <div style={{ maxHeight: 600, overflowY: 'auto', padding: '12px 16px' }}>
-            {filtered.map((section, i) => {
-              const lines2 = section.split('\n');
-              const heading = lines2[0].replace(/^#+\s*/, '');
-              const body = lines2.slice(1).join('\n').trim();
-              return (
-                <div key={i} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < filtered.length - 1 ? '0.5px solid #F3F4F6' : 'none' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-brand)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>{heading}</div>
-                  <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{body}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export default function StageWorkspaceScreen() {
   const { projectId, stageIndex: stageParam } = useParams<{ projectId: string; stageIndex: string }>();
@@ -532,16 +532,17 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
             {/* Spec document viewer - Stage 1+ */}
             {currentStage === 0 && specDoc && !specBuilding && (
               <div style={{ marginBottom: 20 }}>
-                <SpecViewer doc={specDoc} isApproved={status === 'approved'} />
+                <div style={{ border: '1.5px solid var(--color-brand)', borderRadius: 10, overflow: 'hidden', background: '#fff' }}>
+                  <button onClick={() => setShowSpecViewer(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', border: 'none', background: 'linear-gradient(135deg, #F5F0FF 0%, #EEF2FF 100%)', cursor: 'pointer', textAlign: 'left' }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-brand)' }}>📋 Standard Specification Document</div>
+                      <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>{specDoc.split(/\n(?=##\s)/).filter(Boolean).length} sections · Version 0.1.0 · <span style={{ color: ['approved','awaiting_approval'].includes(status) ? '#22C55E' : '#F59E0B', fontWeight: 600 }}>{status === 'approved' ? '✓ Approved & Locked' : status === 'awaiting_approval' ? '✓ Specification Complete' : 'Draft — awaiting approval'}</span></div>
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '6px 14px', background: 'var(--color-brand)', color: '#fff', borderRadius: 6 }}>Open →</span>
+                  </button>
+                </div>
               </div>
             )}
-          {messages.map((msg, i) => (
-            <div key={i} style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-              <div style={{ fontSize: 11, color: 'var(--color-text-tertiary)', marginBottom: 4, paddingLeft: 4, paddingRight: 4 }}>{msg.role === 'user' ? 'You' : 'LINUP'}</div>
-              <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px', background: msg.role === 'user' ? 'var(--color-brand)' : 'var(--color-bg-secondary)', color: msg.role === 'user' ? '#fff' : 'var(--color-text-primary)', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-            </div>
-          ))}
-          {chatRunning && <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', color: 'var(--color-text-tertiary)', fontSize: 13 }}><span style={spin} /> LINUP is thinking...</div>}
           {readyToRunCouncil && (
             <div style={{ textAlign: 'center', padding: '24px 0', borderTop: '1px dashed var(--color-border-tertiary)', marginTop: 8 }}>
               <div style={{ fontSize: 14, color: 'var(--color-text-secondary)', marginBottom: 16, lineHeight: 1.6 }}>Ready to deploy the AI council.<br /><strong>9 specialist agents</strong> will review your brief simultaneously.</div>
@@ -551,7 +552,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           )}
         </div>
 
-        {!specDoc && status !== 'approved' && council.agents.length === 0 && !councilRunning && (
+        {!specDoc && !councilRunning && council.agents.length === 0 && status !== 'approved' && (
           <div style={{ padding: '12px 16px', borderTop: '0.5px solid var(--color-border-tertiary)', display: 'flex', gap: 8, flexShrink: 0 }}>
             <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Answer LINUP's questions... (Enter to send)" rows={2} disabled={chatRunning || councilRunning} style={{ flex: 1, padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', borderRadius: 8, fontSize: 14, resize: 'none', fontFamily: 'system-ui', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', outline: 'none' }} />
             <input ref={fileInputRef} type='file' accept='.pdf,.docx,.txt,.png,.jpg' style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) setInput(prev => prev + ' [File: ' + f.name + ']'); }} /><button onClick={() => fileInputRef.current?.click()} style={{ padding: '0 12px', background: '#F4F4F2', border: '1px solid #E0E0DE', borderRadius: 8, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>📎</button><button onClick={sendMessage} disabled={chatRunning || councilRunning || !input.trim()} style={{ padding: '0 18px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Send</button>
