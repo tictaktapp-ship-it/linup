@@ -259,6 +259,25 @@ export default function CouncilPanel({
         {/* PROGRESS VIEW */}
         {tab === 'progress' && (
           <div>
+            {council.agents.length === 0 && council.gate_scorecard && (
+              <div style={{ padding: '16px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: council.approved ? '#22C55E22' : '#F59E0B22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                    {council.approved ? '✓' : '◎'}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: council.approved ? '#22C55E' : '#F59E0B' }}>
+                      {council.approved ? 'Council Approved' : 'Awaiting Approval'}
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-tertiary)', marginTop: 1 }}>The Council has completed its review</div>
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', lineHeight: 1.6, padding: '10px 12px', background: 'var(--color-bg-secondary)', borderRadius: 8 }}>
+                  Review the Product Direction Document in the Review table tab, answer any questions, then approve to begin building your specification.
+                </div>
+              </div>
+            )}
+
             {council.agents
               .filter((a, i, arr) => arr.findIndex(x => x.agent_id === a.agent_id) === i)
               .map(agent => {

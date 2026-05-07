@@ -124,27 +124,27 @@ export default function SpecDocumentViewer({ doc, projectId: _projectId, project
   const filteredSections = search.trim() ? sections.filter(s => s.title.toLowerCase().includes(search.toLowerCase()) || s.content.toLowerCase().includes(search.toLowerCase())) : sections;
 
   const downloadMarkdown = () => {
-    const blob = new Blob([doc], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
+    const encoded = encodeURIComponent(doc);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `${projectName.replace(/\s+/g, '-')}-specification-v0.1.0.md`;
-    a.click();
-    URL.revokeObjectURL(url);
+    a.href = 'data:text/markdown;charset=utf-8,' + encoded;
+    a.download = projectName.replace(/\s+/g, '-') + '-specification-v0.1.0.md';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   };
 
+
+
   const downloadPDF = () => {
-    const html = '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>' + projectName + ' — Specification</title><style>body{font-family:Inter,sans-serif;color:#1A1A18;max-width:900px;margin:0 auto;padding:40px}h2{font-size:20px;color:#8C00B4;margin:32px 0 8px;border-bottom:2px solid #8C00B4;padding-bottom:4px}h3{font-size:15px;margin:20px 0 6px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border:1px solid #E0E0DE;padding:8px;text-align:left;font-size:13px}th{background:#F4F4F2;font-weight:600}.gap{color:#DC2626;font-weight:700}hr{border:none;border-top:1px solid #E0E0DE;margin:24px 0}@media print{body{-webkit-print-color-adjust:exact}}</style></head><body>' + doc.replace(/<!--.*?-->/gs, '').replace(/^## (.+)$/gm, '<h2></h2>').replace(/^### (.+)$/gm, '<h3></h3>').replace(/\*\*(.+?)\*\*/g, '<strong></strong>').replace(/^---+$/gm, '<hr>').replace(/\n\n/g, '</p><p>') + '</body></html>';
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    const html = '<!DOCTYPE html><html><head><meta charset="utf-8"/><title>' + projectName + ' - Specification</title><style>body{font-family:system-ui,sans-serif;color:#1A1A18;max-width:900px;margin:0 auto;padding:40px}h2{font-size:20px;color:#8C00B4;margin:32px 0 8px;border-bottom:2px solid #8C00B4;padding-bottom:4px}h3{font-size:15px;margin:20px 0 6px}table{width:100%;border-collapse:collapse;margin:12px 0}td,th{border:1px solid #ddd;padding:8px;font-size:13px}th{background:#f5f5f5;font-weight:600}@media print{body{-webkit-print-color-adjust:exact}}</style></head><body>' + doc.replace(/^## (.+)$/gm, '<h2></h2>').replace(/^### (.+)$/gm, '<h3></h3>').replace(/\*\*(.+?)\*\*/g, '<strong></strong>').replace(/^---+$/gm, '<hr>').replace(/\n\n/g, '</p><p>') + '</body></html>';
+    const encoded = encodeURIComponent(html);
     const a = document.createElement('a');
-    a.href = url;
+    a.href = 'data:text/html;charset=utf-8,' + encoded;
     a.download = projectName.replace(/\s+/g, '-') + '-specification-v0.1.0.html';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   };
+
+
+
+
 
   const handleApprove = async () => {
     setApproving(true);

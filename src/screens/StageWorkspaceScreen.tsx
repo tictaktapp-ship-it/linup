@@ -43,7 +43,7 @@ STRICT RULES:
 
 
 const STAGES = [
-  { index: 0,  name: 'Product Spec',  description: 'AI council reviews your brief and produces product direction' },
+  { index: 0,  name: 'Product Spec',  description: 'The Council reviews your brief and produces product direction' },
   { index: 1,  name: 'Architecture',  description: 'System design, tech stack, and component structure' },
   { index: 2,  name: 'Database',      description: 'Schema design, migrations, and data model' },
   { index: 3,  name: 'Backend',       description: 'API design, business logic, and server code' },
@@ -62,7 +62,7 @@ function makeEmptyCouncil(): CouncilState {
   return { agents: [], gate_verdict: '', gate_scorecard: '', approved: false, running: false };
 }
 
-function SpecViewer({ doc }: { doc: string }) {
+function SpecViewer({ doc, isApproved }: { doc: string; isApproved?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
   const sections = doc.split(/\n(?=##\s)/).filter(Boolean);
@@ -72,7 +72,7 @@ function SpecViewer({ doc }: { doc: string }) {
       <button onClick={() => setExpanded(e => !e)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: 'none', background: 'linear-gradient(135deg, #F5F0FF 0%, #EEF2FF 100%)', cursor: 'pointer', textAlign: 'left' }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-brand)' }}>📋 Standard Specification Document</div>
-          <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>{sections.length} sections · Version 0.1.0 · Draft — click to {expanded ? 'collapse' : 'read'}</div>
+          <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>{sections.length} sections · Version 0.1.0 · <span style={{ color: isApproved ? '#22C55E' : '#F59E0B', fontWeight: 600 }}>{isApproved ? '✓ Approved' : 'Draft'}</span> — click to {expanded ? 'collapse' : 'read'}</div>
         </div>
         <span style={{ fontSize: 12, color: 'var(--color-brand)', fontWeight: 700 }}>{expanded ? 'Collapse ▲' : 'Read ▼'}</span>
       </button>
@@ -532,7 +532,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
             {/* Spec document viewer - Stage 1+ */}
             {currentStage === 0 && specDoc && !specBuilding && (
               <div style={{ marginBottom: 20 }}>
-                <SpecViewer doc={specDoc} />
+                <SpecViewer doc={specDoc} isApproved={status === 'approved'} />
               </div>
             )}
           {messages.map((msg, i) => (
@@ -551,7 +551,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
           )}
         </div>
 
-        {status !== 'approved' && council.agents.length === 0 && (
+        {!specDoc && status !== 'approved' && council.agents.length === 0 && !councilRunning && (
           <div style={{ padding: '12px 16px', borderTop: '0.5px solid var(--color-border-tertiary)', display: 'flex', gap: 8, flexShrink: 0 }}>
             <textarea value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Answer LINUP's questions... (Enter to send)" rows={2} disabled={chatRunning || councilRunning} style={{ flex: 1, padding: '10px 12px', border: '1px solid var(--color-border-tertiary)', borderRadius: 8, fontSize: 14, resize: 'none', fontFamily: 'system-ui', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', outline: 'none' }} />
             <input ref={fileInputRef} type='file' accept='.pdf,.docx,.txt,.png,.jpg' style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) setInput(prev => prev + ' [File: ' + f.name + ']'); }} /><button onClick={() => fileInputRef.current?.click()} style={{ padding: '0 12px', background: '#F4F4F2', border: '1px solid #E0E0DE', borderRadius: 8, fontSize: 16, cursor: 'pointer', flexShrink: 0 }}>📎</button><button onClick={sendMessage} disabled={chatRunning || councilRunning || !input.trim()} style={{ padding: '0 18px', background: 'var(--color-brand)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}>Send</button>
