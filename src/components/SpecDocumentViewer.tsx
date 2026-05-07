@@ -82,6 +82,8 @@ export default function SpecDocumentViewer({ doc, projectId, projectName, onAppr
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [showAnswerPanel, setShowAnswerPanel] = useState(false);
+  const [questionAnswers, setQuestionAnswers] = useState<Record<string, string>>({});
   const contentRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -113,6 +115,11 @@ export default function SpecDocumentViewer({ doc, projectId, projectName, onAppr
   const blocked = sections.filter(s => s.verdict === 'BLOCKED').length;
   const totalGaps = sections.reduce((a, s) => a + s.gaps, 0);
   const totalQuestions = sections.reduce((a, s) => a + s.questions, 0);
+  const allQuestions = sections.flatMap(s =>
+    s.content.split('\n')
+      .filter((l: string) => l.trim().startsWith('QUESTION:'))
+      .map((l: string, i: number) => ({ id: s.id + '-q' + i, text: l.replace(/^QUESTION:\s*/, '').trim(), section: s.title }))
+  );
   const filteredSections = search.trim() ? sections.filter(s => s.title.toLowerCase().includes(search.toLowerCase()) || s.content.toLowerCase().includes(search.toLowerCase())) : sections;
 
   const downloadMarkdown = () => {
@@ -206,6 +213,7 @@ ${doc.replace(/<!--.*?-->/gs, '').replace(/^## (.+)$/gm, '<h1>$1</h1>').replace(
         <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#FEF3C7', color: '#B45309', letterSpacing: '0.06em' }}>DRAFT</span>
         <div style={{ flex: 1 }} />
         {saveStatus && <span style={{ fontSize: 11, color: '#52B788' }}>{saveStatus}</span>}
+        {allQuestions.length > 0 && <button style={btn('#EEF2FF', '#6366F1', '0.5px solid #C7D2FE')} onClick={() => setShowAnswerPanel(true)}>✎ Answer {allQuestions.length} Questions</button>}
         <button style={btn('transparent', '#8A8A82')} onClick={downloadMarkdown}>↓ MD</button>
         <button style={btn('transparent', '#8A8A82')} onClick={downloadPDF}>↓ PDF</button>
         <div style={{ width: 1, height: 20, background: '#2A2A30' }} />
@@ -297,6 +305,39 @@ ${doc.replace(/<!--.*?-->/gs, '').replace(/^## (.+)$/gm, '<h1>$1</h1>').replace(
           </div>
         </div>
       </div>
+
+      {/* Answer questions panel */}
+      {showAnswerPanel && allQuestions.length > 0 && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(12,12,14,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#141417', borderRadius: 12, border: '0.5px solid #2A2A30', padding: 28, width: 600, maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.6)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <img src='/assets/linup-icon.png' alt='' style={{ width: 22, height: 22 }} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#F1F5F9' }}>Answer Specification Questions</span>
+              <span style={{ marginLeft: 'auto', fontSize: 11, color: '#4A5568' }}>{Object.keys(questionAnswers).length}/{allQuestions.length} answered</span>
+            </div>
+            <p style={{ fontSize: 13, color: '#8B9DB5', lineHeight: 1.6, marginBottom: 16 }}>Your answers will be sent to the Engineering Team to revise the specification.</p>
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {allQuestions.map((q: {id:string;text:string;section:string}) => (
+                <div key={q.id} style={{ background: '#1E1E22', borderRadius: 8, padding: 12 }}>
+                  <div style={{ fontSize: 10, color: '#6366F1', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>{q.section}</div>
+                  <div style={{ fontSize: 13, color: '#F1F5F9', marginBottom: 8, lineHeight: 1.5 }}>{q.text}</div>
+                  <textarea value={questionAnswers[q.id] ?? ''} onChange={e => setQuestionAnswers(prev => ({ ...prev, [q.id]: e.target.value }))} placeholder='Your answer...' style={{ width: '100%', minHeight: 60, padding: '8px 10px', background: '#141417', border: '0.5px solid #2A2A30', borderRadius: 6, fontSize: 12, color: '#F1F5F9', resize: 'vertical', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'flex-end' }}>
+              <button style={btn('transparent', '#8A8A82')} onClick={() => setShowAnswerPanel(false)}>Cancel</button>
+              <button style={btn('#8C00B4', '#fff')} onClick={async () => {
+                const answersText = allQuestions.map((q: {id:string;text:string;section:string}) => Q: \nA: ).join('\n\n');
+                setShowAnswerPanel(false);
+                setRejecting(true);
+                await onReject('Please revise the specification addressing these answers:\n\n' + answersText);
+                setRejecting(false);
+              }}>Send to Engineering Team →</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Reject modal */}
       {showRejectModal && (

@@ -509,7 +509,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
         <div ref={chatRef} style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
           {messages.length === 0 && !chatRunning && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80%', gap: 12 }}><div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--color-brand-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>✦</div><div style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-text-primary)' }}>Starting {STAGES[currentStage]?.name}...</div></div>}
             {/* Spec building progress - Stage 1+ */}
-            {currentStage >= 1 && specBuilding && (
+            {currentStage === 0 && specBuilding && (
               <div style={{ padding: '16px', background: '#F0F4FF', borderRadius: 10, marginBottom: 16, border: '1px solid #C7D2FE' }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#4338CA', marginBottom: 10 }}>⚙ 22-Member Specification Team is building your document...</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -522,7 +522,7 @@ const reply = await callAI([{ role: 'user', content: projectContext }], key);
               </div>
             )}
             {/* Spec document viewer - Stage 1+ */}
-            {currentStage >= 1 && specDoc && !specBuilding && (
+            {currentStage === 0 && specDoc && !specBuilding && (
               <div style={{ marginBottom: 20 }}>
                 <SpecViewer doc={specDoc} />
               </div>
