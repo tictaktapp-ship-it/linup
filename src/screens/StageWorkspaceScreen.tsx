@@ -136,7 +136,7 @@ export default function StageWorkspaceScreen() {
       setStageStatus(synthStatus);
       if (synthStatus.status === 'pending' && stage === 0 && messages.length === 0) startChat();
       // Load council result from Supabase
-      const councilArtifact = await getLatestArtifact(pid, stage, 'council_result');
+      const councilArtifact = await getLatestArtifact(pid, stage, 'gate_scorecard');
       if (councilArtifact?.content) {
         try {
           const scorecard = councilArtifact.content;
@@ -242,7 +242,7 @@ export default function StageWorkspaceScreen() {
         setCouncilRunning(false);
         const gateText = ev.payload.gate_scorecard ?? '';
         try {
-          await saveCouncilArtifact({ project_id: pid, user_id: '', stage_index: currentStage, artifact_type: 'council_result', content: gateText });
+          await saveCouncilArtifact({ project_id: pid, user_id: '', stage_index: currentStage, artifact_type: 'gate_scorecard', content: gateText });
           await upsertStageRun(pid, currentStage, ev.payload.approved ? 'awaiting_approval' : 'gate_failed');
         } catch(e) { console.error(e); }
         const qLines: string[] = [];
