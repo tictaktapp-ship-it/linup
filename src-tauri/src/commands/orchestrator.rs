@@ -382,20 +382,20 @@ pub async fn run_council(
     db.execute(
         "INSERT INTO council_artifacts (id, project_id, stage_index, artifact_type, content, created_at) VALUES (?1,?2,?3,'council_result',?4,?5)",
         params![artifact_id, project_id, stage_index, council_json, created_at],
-    ).map_err(|e| e.to_string())?;
+    );
 
     let spec_id = uuid::Uuid::new_v4().to_string();
     db.execute(
         "INSERT INTO council_artifacts (id, project_id, stage_index, artifact_type, content, created_at) VALUES (?1,?2,?3,'product_spec',?4,?5)",
         params![spec_id, project_id, stage_index, spec, created_at],
-    ).map_err(|e| e.to_string())?;
+    );
 
     let run_id = uuid::Uuid::new_v4().to_string();
     let status = if approved { "awaiting_approval" } else { "gate_failed" };
     db.execute(
         "INSERT OR REPLACE INTO stage_runs (id, project_id, stage_index, status, started_at) VALUES (?1,?2,?3,?4,?5)",
         params![run_id, project_id, stage_index, status, created_at],
-    ).map_err(|e| e.to_string())?;
+    );
 
     let result = StageCouncilResult {
         project_id: project_id.clone(),
